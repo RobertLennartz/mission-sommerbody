@@ -73,7 +73,7 @@ Neu einrichten, falls nötig:
 
 ## Was die App kann
 
-- **Heute:** "Was habt ihr gemacht?" per Antippen (Kraft, Laufen, Schwimmen, Rad, HIIT, Recovery), auch mehrere Trainings am Tag und für beide zugleich. Schritte, Morgengewicht, Schlaf, Energie, Mahlzeiten mit Proteinziel, Bemerkungen. Alles speichert automatisch.
+- **Heute:** "Was habt ihr gemacht?" per Antippen (Kraft, Laufen, Schwimmen, Spinning, HIIT, Recovery (Sauna, Eisbad, Massage, mehrere auf einmal, ohne Zeit)), auch mehrere Trainings am Tag und für beide zugleich. Schritte, Morgengewicht, Schlaf, Energie, Mahlzeiten mit Proteinziel, Bemerkungen. Alles speichert automatisch.
 - **Einheit:** Kraft mit eigenen Übungen und Sätzen, der letzte Wert derselben Übung steht als Referenz daneben. Ausdauer mit Dauer (45, 26:40 oder 1:05:30) und km, der Schnitt (min/km, km/h) wird berechnet.
 - **Woche, Planung, Vorlagen:** optional planen, Woche aus Vorlage füllen, verschieben. Ein Wochenziel für alle Trainings, Recovery zählt extra.
 - **Ernährung, Checkups, Übersicht:** Protein pro Tag und Woche, Körperfett nach Jackson/Pollock mit Start-gegen-Ende-Vergleich, Verläufe.

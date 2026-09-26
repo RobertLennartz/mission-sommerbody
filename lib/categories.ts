@@ -22,7 +22,7 @@ export const QUICK_ACTIVITIES: { label: string; category: Category; activity: st
   { label: "Kraft", category: "strength", activity: null },
   { label: "Laufen", category: "cardio", activity: "Laufen" },
   { label: "Schwimmen", category: "cardio", activity: "Schwimmen" },
-  { label: "Rad", category: "cardio", activity: "Radfahren" },
+  { label: "Spinning", category: "cardio", activity: "Spinning" },
   { label: "HIIT", category: "hiit", activity: "HIIT" },
   { label: "Recovery", category: "recovery", activity: "Recovery" },
 ];
@@ -40,6 +40,9 @@ export const MEAL_LABEL: Record<MealType, string> = {
   snack: "Snack",
 };
 export const MEAL_TYPES: MealType[] = ["breakfast", "lunch", "dinner", "snack"];
+
+/** Recovery is ticked, not timed: one entry per chosen item. */
+export const RECOVERY_OPTIONS = ["Sauna", "Eisbad", "Massage"] as const;
 
 /** Recovery is shown but does not count toward the weekly training goal. */
 export function countsAsTraining(category: Category): boolean {

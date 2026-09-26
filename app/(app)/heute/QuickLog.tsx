@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { quickLogSession, quickLogTemplate } from "@/app/actions/training";
-import { CATEGORY_COLOR, QUICK_ACTIVITIES } from "@/lib/categories";
+import { quickLogRecovery, quickLogSession, quickLogTemplate } from "@/app/actions/training";
+import { CATEGORY_COLOR, QUICK_ACTIVITIES, RECOVERY_OPTIONS } from "@/lib/categories";
 
 /** "Was habt ihr heute gemacht?": one tap logs a done training, several per day are fine. */
 export function QuickLog({
@@ -18,7 +18,8 @@ export function QuickLog({
   strengthTemplates: { id: string; name: string; count: number }[];
 }) {
   const [both, setBoth] = useState(false);
-  const [strengthOpen, setStrengthOpen] = useState(false);
+  const [open, setOpen] = useState<"strength" | "recovery" | null>(null);
+  const [recovery, setRecovery] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
   return (
     <div className="flex flex-col gap-3 p-4" aria-busy={pending}>
@@ -31,9 +32,10 @@ export function QuickLog({
             className="btn min-h-[52px] px-1"
             style={{ borderLeft: `6px solid ${CATEGORY_COLOR[q.category]}` }}
             disabled={pending}
-            aria-expanded={q.category === "strength" ? strengthOpen : undefined}
+            aria-expanded={q.category === "strength" || q.category === "recovery" ? open === q.category : undefined}
             onClick={() => {
-              if (q.category === "strength" && strengthTemplates.length > 0) setStrengthOpen((open) => !open);
+              if (q.category === "recovery") setOpen((o) => (o === "recovery" ? null : "recovery"));
+              else if (q.category === "strength" && strengthTemplates.length > 0) setOpen((o) => (o === "strength" ? null : "strength"));
               else startTransition(() => quickLogSession(athleteId, date, q.category, q.activity, both));
             }}
           >
@@ -41,7 +43,43 @@ export function QuickLog({
           </button>
         ))}
       </div>
-      {strengthOpen ? (
+      {open === "recovery" ? (
+        <div className="flex flex-col gap-2 p-3" style={{ background: "var(--color-paper)", borderLeft: `6px solid ${CATEGORY_COLOR.recovery}` }}>
+          <span className="t-label">Was war dabei? Mehrere möglich.</span>
+          <div className="grid grid-cols-3 gap-2">
+            {RECOVERY_OPTIONS.map((item) => {
+              const on = recovery.includes(item);
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  aria-pressed={on}
+                  className="btn px-1"
+                  style={on ? { background: "var(--color-acc)", color: "var(--color-acc-on)" } : undefined}
+                  onClick={() => setRecovery((r) => (on ? r.filter((x) => x !== item) : [...r, item]))}
+                >
+                  {item}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={pending || recovery.length === 0}
+            onClick={() =>
+              startTransition(async () => {
+                await quickLogRecovery(athleteId, date, recovery, both);
+                setRecovery([]);
+                setOpen(null);
+              })
+            }
+          >
+            Eintragen
+          </button>
+        </div>
+      ) : null}
+      {open === "strength" ? (
         <div className="flex flex-col gap-2 p-3" style={{ background: "var(--color-paper)", borderLeft: `6px solid ${CATEGORY_COLOR.strength}` }}>
           <span className="t-label">Welches Krafttraining?</span>
           <div className="grid grid-cols-2 gap-2">

@@ -95,6 +95,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
           <h2 className="t-label t-label-lg">Details</h2>
         </div>
         <div className="flex flex-col gap-4 p-4">
+          {session.category !== "recovery" ? (
           <TrainingNumbers
             id={session.id}
             withDistance={session.category !== "strength"}
@@ -103,8 +104,9 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
             avgHr={session.avg_hr}
             activity={session.activity}
           />
+          ) : null}
           <SessionBasics id={session.id} title={session.title} date={session.date} notes={session.notes} />
-          <RpeButtons id={session.id} initial={session.rpe} />
+          {session.category !== "recovery" ? <RpeButtons id={session.id} initial={session.rpe} /> : null}
         </div>
       </section>
 

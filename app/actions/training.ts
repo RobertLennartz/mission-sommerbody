@@ -7,6 +7,7 @@ import { InputError, guard, oneOf, requireAthlete, requireDate, requireUuid } fr
 import { isIsoDate, startOfIsoWeek } from "@/lib/dates";
 import { parseDuration, validateDuration } from "@/lib/duration";
 import { MISSION_END, MISSION_START } from "@/lib/mission";
+import { RECOVERY_OPTIONS } from "@/lib/categories";
 import { invalid, saved, type SaveResult } from "@/lib/save-result";
 import { check, db, unwrap } from "@/lib/supabase/server";
 import type { Category, PlanTemplateExerciseRow, PlanTemplateRow, SessionRow, SessionSetRow } from "@/lib/supabase/database.types";
@@ -109,6 +110,25 @@ export async function quickLogTemplate(athleteId: string, date: string, template
     "Einheit anlegen",
   ) as string[];
   redirect(`/einheit/${created[0]}`);
+}
+
+/** Recovery from the today page: one done entry per ticked item (Sauna, Eisbad, Massage), no time. */
+export async function quickLogRecovery(athleteId: string, date: string, items: string[], both: boolean): Promise<void> {
+  await guard();
+  const athlete = await requireAthlete(athleteId);
+  const day = requireDate(date);
+  const chosen = [...new Set(items)].map((i) => oneOf(i, RECOVERY_OPTIONS, "Recovery"));
+  if (chosen.length === 0) throw new InputError("Bitte mindestens eins auswählen.");
+  const athletes = unwrap(await db().from("athletes").select("id").order("sort_order"), "Personen laden");
+  const ids = both ? [athlete.id, ...athletes.map((a) => a.id).filter((id) => id !== athlete.id)] : [athlete.id];
+  for (const item of chosen) {
+    const created = unwrap(
+      await db().rpc("create_sessions", { p_athletes: ids, p_date: day, p_status: "done", p_template: null, p_category: "recovery", p_title: item }),
+      "Recovery eintragen",
+    ) as string[];
+    check(await db().from("sessions").update({ activity: item }).in("id", created), "Recovery eintragen");
+  }
+  refresh();
 }
 
 export type FillState = { error?: string; message?: string };
