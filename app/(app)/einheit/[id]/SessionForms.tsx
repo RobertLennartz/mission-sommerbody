@@ -11,7 +11,6 @@ import {
   copyLastPerformance,
   saveSessionAsTemplate,
   type TemplateState,
-  deleteSession,
   removeSessionExercise,
   saveSessionField,
   saveSet,
@@ -24,17 +23,7 @@ import { formatDecimal, toInputValue } from "@/lib/numbers";
 import { formatDuration, formatPace, paceSecPerKm, parseDuration, speedKmh, validateDuration } from "@/lib/duration";
 import type { SessionStatus } from "@/lib/supabase/database.types";
 
-export function StatusButtons({
-  id,
-  status,
-  partnerName,
-  afterDelete,
-}: {
-  id: string;
-  status: SessionStatus;
-  partnerName: string | null;
-  afterDelete: string;
-}) {
+export function StatusButtons({ id, status }: { id: string; status: SessionStatus }) {
   const [pending, startTransition] = useTransition();
   return (
     <div className="flex flex-col gap-2" aria-busy={pending}>
@@ -54,20 +43,6 @@ export function StatusButtons({
             Zurück auf geplant
           </button>
         ) : null}
-        <button
-          type="button"
-          className="btn btn-sm btn-danger"
-          disabled={pending}
-          onClick={() => {
-            if (!confirm("Einheit löschen? Alle eingetragenen Sätze gehen verloren.")) return;
-            const both = partnerName
-              ? confirm(`Gemeinsame Einheit: auch bei ${partnerName} löschen?\n\nOK = beide, Abbrechen = nur diese.`)
-              : false;
-            startTransition(() => deleteSession(id, both, afterDelete));
-          }}
-        >
-          Löschen
-        </button>
       </div>
     </div>
   );

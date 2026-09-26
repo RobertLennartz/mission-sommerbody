@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DayNav } from "@/components/DayNav";
+import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { CategoryMark } from "@/components/SessionBadge";
 import { StatusPill } from "@/components/StatusPill";
 import { requireSelectedAthlete } from "@/lib/athletes";
@@ -57,8 +58,8 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
         ) : (
           <ul className="divide-line">
             {day.sessions.map((s) => (
-              <li key={s.id}>
-                <Link href={`/einheit/${s.id}`} className="flex min-h-[64px] items-center gap-3 px-4 py-3 hover:bg-paper">
+              <li key={s.id} className="flex items-center gap-2 pr-3">
+                <Link href={`/einheit/${s.id}`} className="flex min-h-[64px] min-w-0 flex-1 items-center gap-3 py-3 pl-4 hover:bg-paper">
                   <CategoryMark category={s.category} status={s.status} />
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className={`t-strong truncate text-[16px] ${s.status === "skipped" ? "text-mute line-through" : ""}`}>
@@ -74,6 +75,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
                   </span>
                   <StatusPill status={s.status} />
                 </Link>
+                <DeleteSessionButton id={s.id} title={s.title} partnerName={s.pair_id ? (partner?.name ?? null) : null} />
               </li>
             ))}
           </ul>

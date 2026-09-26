@@ -37,5 +37,7 @@ describe("pace", () => {
     expect(durationLabel(2700)).toBe("45 min");
     expect(durationLabel(1600)).toBe("26:40 min");
     expect(durationLabel(3930)).toBe("1:05:30 h");
+    expect(durationLabel(3600)).toBe("60 min");
+    expect(durationLabel(5400)).toBe("90 min");
   });
 });

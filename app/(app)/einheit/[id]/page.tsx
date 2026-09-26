@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CategoryMark } from "@/components/SessionBadge";
 import { StatusPill } from "@/components/StatusPill";
+import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { getAthletes, requireSelectedAthlete } from "@/lib/athletes";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { getExercises, getSession, lastPerformances, type LastPerformance } from "@/lib/data/training";
@@ -60,7 +61,10 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
             {partnerName ? ` · gemeinsam mit ${partnerName}` : ""}
           </span>
         </div>
-        <StatusPill status={session.status} />
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <StatusPill status={session.status} />
+          <DeleteSessionButton id={session.id} title={session.title} partnerName={partnerName} redirectTo={`/heute?datum=${session.date}`} />
+        </div>
       </div>
 
       {session.category === "strength" ? (
@@ -116,7 +120,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
         </div>
       </section>
 
-      <StatusButtons id={session.id} status={session.status} partnerName={partnerName} afterDelete={`/heute?datum=${session.date}`} />
+      <StatusButtons id={session.id} status={session.status} />
     </div>
   );
 }

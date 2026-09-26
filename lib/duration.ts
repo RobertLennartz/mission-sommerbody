@@ -36,10 +36,10 @@ export function formatDuration(sec: number): string {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-/** Short label for lists: "45 min", "26:40 min", "1:05:30 h". */
+/** Short label for lists: "45 min", "60 min", "26:40 min", "1:05:30 h". */
 export function durationLabel(sec: number): string {
-  if (sec >= 3600) return `${formatDuration(sec)} h`;
-  return sec % 60 === 0 ? `${sec / 60} min` : `${formatDuration(sec)} min`;
+  if (sec % 60 === 0) return `${sec / 60} min`;
+  return sec >= 3600 ? `${formatDuration(sec)} h` : `${formatDuration(sec)} min`;
 }
 
 /** Pace in seconds per km, null without both values. */
