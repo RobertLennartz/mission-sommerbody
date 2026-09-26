@@ -59,10 +59,15 @@ npm run dev
 
 ### 5. Vercel
 
-1. Auf vercel.com/new das Repo `mission-sommerbody` importieren (Framework wird erkannt).
-2. Vor dem ersten Deploy die vier Variablen unter **Environment Variables** eintragen.
-3. Deploy. Danach deployt jeder Push auf `main` automatisch.
-4. Region prüfen: **Settings > Functions > Function Region** muss Dublin (`dub1`) zeigen. Das kommt aus `vercel.json`.
+Das Projekt `mission-sommerbody` (Scope `robert-6581s-projects`) ist mit diesem Repo verbunden: **jeder Push auf `main` deployt automatisch** nach https://mission-sommerbody.vercel.app.
+
+Neu einrichten, falls nötig:
+
+1. Vercel-Konto mit GitHub verbinden: https://vercel.com/account/authentication
+2. Der Vercel-App auf GitHub Zugriff auf das Repo geben: https://github.com/settings/installations
+3. Im Projektordner: `npx vercel link --project mission-sommerbody` und `npx vercel git connect`
+4. Die vier Variablen setzen, zum Beispiel `npx vercel env add APP_PASSWORD production --sensitive`
+5. Region prüfen: **Settings > Functions > Function Region** muss Dublin (`dub1`) zeigen. Das kommt aus `vercel.json`.
 
 ## Prüfen
 
