@@ -33,7 +33,8 @@ npm install
    3. `supabase/migrations/0003_security.sql`
    4. `supabase/migrations/0004_flexible_training.sql`
    5. `supabase/migrations/0005_duration_seconds.sql`
-   6. `supabase/seed.sql` (Robert, Eddie, Übungen, Vorlagen, Standardwoche; mehrfach ausführbar)
+   6. `supabase/migrations/0006_daily_nutrition_totals.sql`
+   7. `supabase/seed.sql` (Robert, Eddie, Übungen, Vorlagen, Standardwoche; mehrfach ausführbar)
 3. Unter **Settings > API Keys** den Secret Key (`sb_secret_...`) kopieren.
 
 Die Migrationen schalten RLS auf allen Tabellen ein und geben nur der Rolle `service_role` Rechte. Mit dem öffentlichen Key ist nichts lesbar.
@@ -75,7 +76,7 @@ Neu einrichten, falls nötig:
 
 ## Was die App kann
 
-- **Heute:** "Was habt ihr gemacht?" per Antippen (Kraft, Laufen, Schwimmen, Spinning, HIIT, Recovery (Sauna, Eisbad, Massage, mehrere auf einmal, ohne Zeit)), auch mehrere Trainings am Tag und für beide zugleich. Schritte, Morgengewicht, Schlaf, Energie, Mahlzeiten mit Proteinziel, Bemerkungen. Alles speichert automatisch.
+- **Heute:** "Was habt ihr gemacht?" per Antippen (Kraft, Laufen, Schwimmen, Spinning, HIIT, Recovery (Sauna, Eisbad, Massage, mehrere auf einmal, ohne Zeit)), auch mehrere Trainings am Tag und für beide zugleich. Schritte, Morgengewicht, Schlaf, Energie, Protein und Kalorien als grober Tageswert (gilt vor der Summe der Mahlzeiten) oder einzeln pro Mahlzeit, Proteinziel, Bemerkungen. Alles speichert automatisch.
 - **Einheit:** Kraft mit eigenen Übungen und Sätzen, der letzte Wert derselben Übung steht als Referenz daneben. Ausdauer mit Dauer (45, 26:40 oder 1:05:30) und km, der Schnitt (min/km, km/h) wird berechnet.
 - **Woche, Planung, Vorlagen:** optional planen, Woche aus Vorlage füllen, verschieben. Ein Wochenziel für alle Trainings, Recovery zählt extra.
 - **Ernährung, Checkups, Übersicht:** Protein pro Tag und Woche, Körperfett nach Jackson/Pollock mit Start-gegen-Ende-Vergleich, Verläufe.

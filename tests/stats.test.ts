@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { averageOfPresent, proteinTargetFor, sumByDate, weekGoal } from "@/lib/stats";
+import { averageOfPresent, dayNutrition, nutritionByDate, proteinTargetFor, sumByDate, weekGoal } from "@/lib/stats";
 
 describe("proteinTargetFor", () => {
   const checkups = [
@@ -75,5 +75,40 @@ describe("chart scale", () => {
     const t = niceTicks(80, 80);
     expect(t[0]).toBeLessThanOrEqual(79);
     expect(t[t.length - 1]).toBeGreaterThanOrEqual(81);
+  });
+});
+
+describe("daily nutrition totals", () => {
+  const meals = [
+    { protein_g: 30, kcal: 500 },
+    { protein_g: 45.5, kcal: null },
+  ];
+
+  it("uses the sum of the meals without a daily total", () => {
+    const n = dayNutrition({ protein_total_g: null, kcal_total: null }, meals);
+    expect(n).toMatchObject({ protein: 75.5, kcal: 500, proteinFromTotal: false, kcalFromTotal: false, meals: 2 });
+  });
+
+  it("lets the daily total win, protein and kcal independently", () => {
+    const n = dayNutrition({ protein_total_g: 160, kcal_total: null }, meals);
+    expect(n).toMatchObject({ protein: 160, kcal: 500, proteinFromTotal: true, kcalFromTotal: false, mealProtein: 75.5 });
+  });
+
+  it("works with a daily total and no meals at all", () => {
+    expect(dayNutrition({ protein_total_g: 140, kcal_total: 2300 }, [])).toMatchObject({ protein: 140, kcal: 2300, meals: 0 });
+    expect(dayNutrition(undefined, [])).toMatchObject({ protein: null, kcal: null });
+  });
+
+  it("collects days that have a total or meals", () => {
+    const byDate = nutritionByDate(
+      [
+        { date: "2026-10-12", protein_total_g: 150, kcal_total: null },
+        { date: "2026-10-13", protein_total_g: null, kcal_total: null },
+      ],
+      [{ date: "2026-10-14", protein_g: 40, kcal: 600 }],
+    );
+    expect([...byDate.keys()].sort()).toEqual(["2026-10-12", "2026-10-14"]);
+    expect(byDate.get("2026-10-12")!.protein).toBe(150);
+    expect(byDate.get("2026-10-14")!.kcal).toBe(600);
   });
 });

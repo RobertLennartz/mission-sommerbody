@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { AutosaveNumber } from "@/components/form/AutosaveNumber";
 import { AutosaveText } from "@/components/form/AutosaveText";
 import { Progress } from "@/components/Progress";
-import { addMeal, deleteMeal, saveMealField } from "@/app/actions/day";
+import { addMeal, deleteMeal, saveDailyField, saveMealField } from "@/app/actions/day";
 import { MEAL_LABEL, MEAL_TYPES } from "@/lib/categories";
 import { formatDate } from "@/lib/dates";
 import { FIELDS, TEXT_MAX } from "@/lib/fields";
@@ -18,17 +18,27 @@ export function MealsCard({
   date,
   meals,
   target,
+  proteinTotal,
+  kcalTotal,
 }: {
   athleteId: string;
   date: string;
   meals: MealRow[];
   target: ProteinTarget;
+  proteinTotal: number | null;
+  kcalTotal: number | null;
 }) {
   const [protein, setProtein] = useState<Record<string, number | null>>(() =>
     Object.fromEntries(meals.map((m) => [m.id, m.protein_g])),
   );
+  const [dayProtein, setDayProtein] = useState<number | null>(proteinTotal);
+  const [dayKcal, setDayKcal] = useState<number | null>(kcalTotal);
   const [pending, startTransition] = useTransition();
-  const total = meals.reduce((sum, m) => sum + ((m.id in protein ? protein[m.id] : m.protein_g) ?? 0), 0);
+  const mealSum = meals.reduce((sum, m) => sum + ((m.id in protein ? protein[m.id] : m.protein_g) ?? 0), 0);
+  // A daily total wins over the meals (Robert, 27.09.2026).
+  const total = dayProtein ?? mealSum;
+  const mealKcal = meals.some((m) => m.kcal !== null) ? meals.reduce((sum, m) => sum + (m.kcal ?? 0), 0) : null;
+  const kcal = dayKcal ?? mealKcal;
 
   return (
     <section className="card">
@@ -47,6 +57,17 @@ export function MealsCard({
             {target ? `${Math.round((total / target.grams) * 100)} % vom Ziel` : ""}
           </span>
         </div>
+        <p className="t-label t-label-sm text-mute">
+          {dayProtein !== null
+            ? `Tageswert zählt${meals.length ? ` (Mahlzeiten ergeben ${formatDecimal(mealSum, 1)} g)` : ""}`
+            : meals.length
+              ? "Summe der Mahlzeiten"
+              : "Noch nichts eingetragen"}
+        </p>
+        <p className="t-num text-[15px]">
+          {kcal === null ? <span className="text-mute">Kalorien: nicht erfasst</span> : `${formatInt(kcal)} kcal`}
+          {kcal !== null ? <span className="t-label t-label-sm ml-2 text-mute">{dayKcal !== null ? "Tageswert" : "aus Mahlzeiten"}</span> : null}
+        </p>
         {target ? (
           <>
             <Progress value={total} max={target.grams} label="Protein gegen Ziel" />
@@ -59,7 +80,39 @@ export function MealsCard({
         )}
       </div>
 
-      <ul className="divide-line" style={{ borderTop: "1px solid var(--color-line)" }}>
+      <div className="flex flex-col gap-2 px-4 pb-4 pt-3" style={{ borderTop: "1px solid var(--color-line)" }}>
+        <span className="t-label">Schnell: Gesamtwerte für den Tag</span>
+        <div className="grid grid-cols-2 gap-3">
+          <AutosaveNumber
+            label="Protein"
+            field={FIELDS.proteinTotal}
+            initial={toInputValue(proteinTotal, 1)}
+            placeholder="ungefähr"
+            draftKey={`ms:${athleteId}:${date}:proteinTotal`}
+            onValue={setDayProtein}
+            save={(v) => saveDailyField(athleteId, date, "protein_total_g", v)}
+          />
+          <AutosaveNumber
+            label="Kalorien"
+            field={FIELDS.kcalTotal}
+            initial={kcalTotal === null ? "" : String(kcalTotal)}
+            placeholder="ungefähr"
+            draftKey={`ms:${athleteId}:${date}:kcalTotal`}
+            onValue={setDayKcal}
+            save={(v) => saveDailyField(athleteId, date, "kcal_total", v)}
+          />
+        </div>
+        <span className="t-label t-label-sm text-mute">
+          Ein Gesamtwert gilt vor der Summe der Mahlzeiten. Feld leeren, dann zählen wieder die Mahlzeiten.
+        </span>
+      </div>
+
+      {meals.length ? (
+        <div className="px-4 pb-1 pt-3" style={{ borderTop: "1px solid var(--color-line)" }}>
+          <span className="t-label">Einzelne Mahlzeiten (optional)</span>
+        </div>
+      ) : null}
+      <ul className="divide-line">
         {meals.map((meal) => (
           <li key={meal.id} className="flex flex-col gap-2 px-4 py-3">
             <div className="flex items-center justify-between gap-2">
@@ -108,7 +161,7 @@ export function MealsCard({
       </ul>
 
       <div className="flex flex-col gap-2 p-4" style={{ borderTop: "1px solid var(--color-line)" }}>
-        <span className="t-label">Mahlzeit hinzufügen</span>
+        <span className="t-label">Einzelne Mahlzeit hinzufügen (optional)</span>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {MEAL_TYPES.map((type) => (
             <button

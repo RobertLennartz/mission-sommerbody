@@ -84,7 +84,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
       </section>
 
       <StepsCard key={`steps:${k}`} athleteId={athlete.id} date={date} initial={day.log?.steps ?? null} target={athlete.steps_target} />
-      <MealsCard key={`meals:${k}:${day.meals.map((m) => m.id).join(",")}`} athleteId={athlete.id} date={date} meals={day.meals} target={target} />
+      <MealsCard key={`meals:${k}:${day.meals.map((m) => m.id).join(",")}`} athleteId={athlete.id} date={date} meals={day.meals} target={target} proteinTotal={day.log?.protein_total_g ?? null} kcalTotal={day.log?.kcal_total ?? null} />
       <BodyCard
         key={`body:${k}`}
         athleteId={athlete.id}

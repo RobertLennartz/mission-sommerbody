@@ -64,6 +64,8 @@ export type DailyLogRow = Base & {
   sleep_hours: number | null;
   energy: number | null;
   notes: string | null;
+  protein_total_g: number | null;
+  kcal_total: number | null;
 };
 
 export type MealType = "breakfast" | "lunch" | "dinner" | "snack";
@@ -163,7 +165,7 @@ export type Database = {
         Update: Partial<CheckupSkinfoldRow>;
         Relationships: [];
       };
-      daily_logs: Table<DailyLogRow, "steps" | "weight_kg" | "sleep_hours" | "energy" | "notes">;
+      daily_logs: Table<DailyLogRow, "steps" | "weight_kg" | "sleep_hours" | "energy" | "notes" | "protein_total_g" | "kcal_total">;
       meals: Table<MealRow, "description" | "protein_g" | "kcal">;
       exercises: Table<ExerciseRow>;
       plan_templates: Table<

@@ -7,7 +7,8 @@ import { loadRange } from "@/lib/data/range";
 import { addDays, berlinToday, formatDayShort, weekDates } from "@/lib/dates";
 import { isInMission } from "@/lib/mission";
 import { formatDecimal, formatInt } from "@/lib/numbers";
-import { averageOfPresent, proteinTargetFor, sumByDate, weekGoal, type GoalProgress } from "@/lib/stats";
+import { daysLabel } from "@/lib/numbers";
+import { averageOfPresent, nutritionByDate, proteinTargetFor, weekGoal, type GoalProgress } from "@/lib/stats";
 import { weekFromParam } from "@/lib/week-param";
 
 export const metadata: Metadata = { title: "Woche" };
@@ -37,7 +38,8 @@ export default async function WeekPage({ searchParams }: PageProps<"/woche">) {
   const summaries = athletes.map((a) => {
     const sessions = data.sessions.filter((s) => s.athlete_id === a.id);
     const logs = data.logs.filter((l) => l.athlete_id === a.id);
-    const protein = sumByDate(data.meals.filter((m) => m.athlete_id === a.id), (m) => m.protein_g);
+    const nutrition = nutritionByDate(logs, data.meals.filter((m) => m.athlete_id === a.id));
+    const protein = new Map([...nutrition.entries()].filter(([, n]) => n.protein !== null).map(([d, n]) => [d, n.protein!]));
     const steps = averageOfPresent(days.map((d) => logs.find((l) => l.date === d)?.steps));
     const proteinAvg = averageOfPresent(days.map((d) => (protein.has(d) ? protein.get(d)! : null)));
     return {
@@ -81,7 +83,7 @@ export default async function WeekPage({ searchParams }: PageProps<"/woche">) {
               </span>
               <span className="flex items-baseline gap-1.5">
                 <span className="t-label text-mute">Proteinziel</span>
-                <span className="t-num text-[16px]">{s.proteinReached} Tage</span>
+                <span className="t-num text-[16px]">{daysLabel(s.proteinReached)}</span>
               </span>
             </div>
           </section>

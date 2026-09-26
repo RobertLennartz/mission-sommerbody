@@ -63,3 +63,8 @@ export function formatSigned(n: number, digits = 1): string {
   if (n < 0) return `-${s}`;
   return s;
 }
+
+/** "1 Tag", "3 Tage" */
+export function daysLabel(n: number): string {
+  return `${formatInt(n)} ${n === 1 ? "Tag" : "Tage"}`;
+}

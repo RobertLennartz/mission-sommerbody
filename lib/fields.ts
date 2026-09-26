@@ -21,6 +21,8 @@ export const FIELDS = {
   sleep: { kind: "decimal", min: 0, max: 16, unit: "h", digits: 1 },
   protein: { kind: "decimal", min: 0, max: 300, unit: "g", digits: 1 },
   kcal: { kind: "int", min: 0, max: 5000, unit: "kcal" },
+  proteinTotal: { kind: "decimal", min: 0, max: 500, unit: "g", digits: 1 },
+  kcalTotal: { kind: "int", min: 0, max: 10_000, unit: "kcal" },
   skinfold: { kind: "decimal", min: 2, max: 60, unit: "mm", digits: 1 },
   duration: { kind: "int", min: 1, max: 600, unit: "min" },
   distance: { kind: "decimal", min: 0, max: 300, unit: "km", digits: 2 },

@@ -7,7 +7,7 @@ import { invalid, saved, type SaveResult } from "@/lib/save-result";
 import { check, db } from "@/lib/supabase/server";
 import type { DailyLogRow, MealRow } from "@/lib/supabase/database.types";
 
-const DAILY_FIELDS = ["steps", "weight_kg", "sleep_hours", "energy", "notes"] as const;
+const DAILY_FIELDS = ["steps", "weight_kg", "sleep_hours", "energy", "notes", "protein_total_g", "kcal_total"] as const;
 type DailyField = (typeof DAILY_FIELDS)[number];
 
 function toResult(error: unknown): SaveResult {
@@ -28,7 +28,16 @@ function parseDaily(field: DailyField, raw: string): number | string | null {
     if (!Number.isInteger(n) || n < 1 || n > 5) throw new InputError("Energie von 1 bis 5.");
     return n;
   }
-  const spec = field === "steps" ? FIELDS.steps : field === "weight_kg" ? FIELDS.weight : FIELDS.sleep;
+  const spec =
+    field === "steps"
+      ? FIELDS.steps
+      : field === "weight_kg"
+        ? FIELDS.weight
+        : field === "protein_total_g"
+          ? FIELDS.proteinTotal
+          : field === "kcal_total"
+            ? FIELDS.kcalTotal
+            : FIELDS.sleep;
   const r = parseField(raw, spec);
   if (!r.ok) throw new InputError(r.error);
   return r.value;

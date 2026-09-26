@@ -8,6 +8,10 @@ Stand: 26.09.2026. Status: **freigegeben und gebaut**. Änderungen nach der Frei
 - **Flexibles Training statt 3 + 3** (Robert): Auf "Heute" wird per Antippen erfasst, was gemacht wurde: Kraft, Laufen, Schwimmen, Rad, HIIT, Recovery. Mehrere Trainings pro Tag gehen. Neue Kategorie **Recovery**. Das Wochenziel ist eine Zahl (Default 5), Recovery zählt nicht mit, wird aber angezeigt. In der Kurzwoche KW 46 gilt das Ziel anteilig. Migration `0004`.
 - **Dauer in Sekunden** (Robert): Eingabe 45, 26:40 oder 1:05:30. Mit den km wird der Schnitt (min/km, km/h) berechnet. Migration `0005`.
 - **Kategorienfarben** mit dem Dataviz-Validator geprüft und ersetzt: Kraft violett, Ausdauer blau, HIIT orange, Recovery türkis, immer mit Kürzel K/A/H/R.
+- **Ernährung als Tageswert** (Robert, 27.09.): Protein und Kalorien lassen sich als grobe Gesamtzahl für den Tag eintragen. Ist sie gesetzt, gilt sie vor der Summe der Mahlzeiten (Proteinziel, Schnitt, Übersicht, Export). Migration `0006`.
+- **Kraftvorlagen** sind nur noch Oberkörper 1, Oberkörper 2, Unterkörper (Roberts Pläne). Leere Sätze zeigen grau die Werte vom letzten Mal, "Wie letztes Mal" übernimmt sie. Aus jeder Einheit lässt sich eine Vorlage machen. Nur Start- und End-Checkup.
+- **Recovery** = Sauna, Eisbad, Massage zum Ankreuzen, ohne Zeit. "Rad" heißt Spinning.
+- Domain: https://sommerbody.boomlike.de (CNAME bei manitu).
 - Deployment: Vercel-Projekt ist mit GitHub verbunden, jeder Push auf `main` geht live.
 
 ## Was ich von dir brauchte (vor dem Bau)

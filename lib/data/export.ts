@@ -34,8 +34,8 @@ export async function buildExport(name: ExportName): Promise<string> {
   if (name === "tageswerte") {
     const rows = await all(db().from("daily_logs").select("*").order("date"), "Tageswerte");
     return toCsv(
-      ["Datum", "Person", "Schritte", "Morgengewicht kg", "Schlaf h", "Energie 1-5", "Bemerkungen"],
-      rows.map((r) => [r.date, who(r.athlete_id), r.steps, r.weight_kg, r.sleep_hours, r.energy, r.notes]),
+      ["Datum", "Person", "Schritte", "Morgengewicht kg", "Schlaf h", "Energie 1-5", "Protein gesamt g (Tageswert)", "kcal gesamt (Tageswert)", "Bemerkungen"],
+      rows.map((r) => [r.date, who(r.athlete_id), r.steps, r.weight_kg, r.sleep_hours, r.energy, r.protein_total_g, r.kcal_total, r.notes]),
     );
   }
   if (name === "mahlzeiten") {

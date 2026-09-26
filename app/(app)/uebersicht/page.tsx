@@ -7,7 +7,8 @@ import { loadRange } from "@/lib/data/range";
 import { addDays, berlinToday, formatDayShort, isoWeek } from "@/lib/dates";
 import { MISSION_DAYS, MISSION_END, MISSION_START, missionStatus, missionWeeks } from "@/lib/mission";
 import { formatDecimal, formatInt, formatSigned } from "@/lib/numbers";
-import { averageOfPresent, proteinTargetFor, sumByDate } from "@/lib/stats";
+import { daysLabel } from "@/lib/numbers";
+import { averageOfPresent, nutritionByDate, proteinTargetFor } from "@/lib/stats";
 
 export const metadata: Metadata = { title: "Übersicht" };
 
@@ -44,8 +45,9 @@ export default async function OverviewPage() {
     const morning = logs.filter((l) => l.weight_kg !== null).map((l) => ({ date: l.date, value: l.weight_kg! }));
     const weights = [...checkups.map((c) => ({ date: c.date, value: c.weight_kg! })), ...morning].sort((x, y) => (x.date < y.date ? -1 : 1));
     const steps = logs.filter((l) => l.steps !== null).map((l) => ({ date: l.date, value: l.steps! }));
-    const protein = sumByDate(data.meals.filter((m) => m.athlete_id === a.id), (m) => m.protein_g);
-    const proteinDays = [...protein.entries()];
+    const proteinDays = [...nutritionByDate(logs, data.meals.filter((m) => m.athlete_id === a.id)).entries()]
+      .filter(([, n]) => n.protein !== null)
+      .map(([d, n]) => [d, n.protein!] as const);
     const reached = proteinDays.filter(([d, p]) => {
       const t = proteinTargetFor(d, data.checkupWeights.get(a.id) ?? [], data.morningWeights.get(a.id) ?? [], a.protein_target_g_per_kg);
       return t !== null && p >= t;
@@ -79,7 +81,7 @@ export default async function OverviewPage() {
           <span className="t-num text-right text-[13px] text-dead">
             12.10. bis 13.11.2026
             <br />
-            {status.phase === "running" ? `Tag ${status.day} von ${MISSION_DAYS}` : `${MISSION_DAYS} Tage`}
+            {status.phase === "running" ? `Tag ${status.day} von ${MISSION_DAYS}` : `${daysLabel(MISSION_DAYS)}`}
           </span>
         </div>
         <div className="h-2 w-full" style={{ background: "#2A2C2A" }} aria-hidden>
@@ -104,9 +106,9 @@ export default async function OverviewPage() {
                 />
                 <Tile label="Trainings" value={formatInt(p.training)} sub={`plus ${p.byCategory.find((c) => c.c === "recovery")?.n ?? 0} Recovery`} />
                 <Tile label="Ausdauer-km" value={formatDecimal(p.km, 1, true)} />
-                <Tile label="Schritte Ø" value={p.stepsAvg.average === null ? "offen" : formatInt(Math.round(p.stepsAvg.average))} sub={`${p.stepsAvg.days} Tage erfasst`} />
-                <Tile label="Protein Ø" value={p.proteinAvg.average === null ? "offen" : `${formatDecimal(p.proteinAvg.average, 0)} g`} sub={`${p.proteinDays} Tage erfasst`} />
-                <Tile label="Proteinziel" value={`${p.reached} Tage`} sub="erreicht" />
+                <Tile label="Schritte Ø" value={p.stepsAvg.average === null ? "offen" : formatInt(Math.round(p.stepsAvg.average))} sub={`${daysLabel(p.stepsAvg.days)} erfasst`} />
+                <Tile label="Protein Ø" value={p.proteinAvg.average === null ? "offen" : `${formatDecimal(p.proteinAvg.average, 0)} g`} sub={`${daysLabel(p.proteinDays)} erfasst`} />
+                <Tile label="Proteinziel" value={`${daysLabel(p.reached)}`} sub="erreicht" />
               </div>
 
               <div className="flex flex-col gap-1 px-4 pb-4">
