@@ -1,13 +1,24 @@
 import type { Category, MealType, SessionStatus } from "@/lib/supabase/database.types";
 
-export const CATEGORY_LABEL: Record<Category, string> = { strength: "Kraft", cardio: "Ausdauer", hiit: "HIIT" };
-export const CATEGORY_CODE: Record<Category, string> = { strength: "K", cardio: "A", hiit: "H" };
+export const CATEGORY_LABEL: Record<Category, string> = { strength: "Kraft", cardio: "Ausdauer", hiit: "HIIT", recovery: "Recovery" };
+export const CATEGORY_CODE: Record<Category, string> = { strength: "K", cardio: "A", hiit: "H", recovery: "R" };
 export const CATEGORY_COLOR: Record<Category, string> = {
   strength: "var(--color-strength)",
   cardio: "var(--color-cardio)",
   hiit: "var(--color-hiit)",
+  recovery: "var(--color-recovery)",
 };
-export const CATEGORIES: Category[] = ["strength", "cardio", "hiit"];
+export const CATEGORIES: Category[] = ["strength", "cardio", "hiit", "recovery"];
+
+/** Quick buttons on the today page: "Was habt ihr heute gemacht?" */
+export const QUICK_ACTIVITIES: { label: string; category: Category; activity: string | null }[] = [
+  { label: "Kraft", category: "strength", activity: null },
+  { label: "Laufen", category: "cardio", activity: "Laufen" },
+  { label: "Schwimmen", category: "cardio", activity: "Schwimmen" },
+  { label: "Rad", category: "cardio", activity: "Radfahren" },
+  { label: "HIIT", category: "hiit", activity: "HIIT" },
+  { label: "Recovery", category: "recovery", activity: "Recovery" },
+];
 
 export const STATUS_LABEL: Record<SessionStatus, string> = {
   planned: "Geplant",
@@ -23,7 +34,7 @@ export const MEAL_LABEL: Record<MealType, string> = {
 };
 export const MEAL_TYPES: MealType[] = ["breakfast", "lunch", "dinner", "snack"];
 
-/** Strength counts toward the strength goal; cardio and HIIT share the endurance goal. */
-export function goalBucket(category: Category): "strength" | "cardio" {
-  return category === "strength" ? "strength" : "cardio";
+/** Recovery is shown but does not count toward the weekly training goal. */
+export function countsAsTraining(category: Category): boolean {
+  return category !== "recovery";
 }

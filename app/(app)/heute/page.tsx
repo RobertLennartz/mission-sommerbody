@@ -10,6 +10,8 @@ import { berlinToday, isIsoDate } from "@/lib/dates";
 import { formatDecimal } from "@/lib/numbers";
 import { BodyCard, NotesCard, StepsCard } from "./DayForms";
 import { MealsCard, proteinBasisText } from "./MealsCard";
+import { QuickLog } from "./QuickLog";
+import { getAthletes } from "@/lib/athletes";
 
 export const metadata: Metadata = { title: "Heute" };
 
@@ -18,7 +20,8 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
   const today = berlinToday();
   const date = isIsoDate(params.datum) ? params.datum : today;
   const athlete = await requireSelectedAthlete();
-  const [day, basis] = await Promise.all([getDay(athlete.id, date), proteinBasis(athlete.id, date)]);
+  const [day, basis, athletes] = await Promise.all([getDay(athlete.id, date), proteinBasis(athlete.id, date), getAthletes()]);
+  const partner = athletes.find((a) => a.id !== athlete.id) ?? null;
   const target = basis
     ? { grams: basis.weightKg * athlete.protein_target_g_per_kg, basis: proteinBasisText(basis, athlete.protein_target_g_per_kg) }
     : null;
@@ -33,11 +36,11 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
         <div className="card-head flex items-baseline justify-between">
           <h2 className="t-label t-label-lg">Training</h2>
           <Link href={`/planung/neu?datum=${date}&zurueck=${encodeURIComponent(`/heute?datum=${date}`)}`} className="t-label underline">
-            Einheit hinzufügen
+            Planen
           </Link>
         </div>
         {day.sessions.length === 0 ? (
-          <p className="p-4 text-[14px] text-mute">Keine Einheit für diesen Tag.</p>
+          <p className="px-4 pt-4 text-[14px] text-mute">Noch keine Einheit an diesem Tag.</p>
         ) : (
           <ul className="divide-line">
             {day.sessions.map((s) => (
@@ -61,6 +64,9 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
             ))}
           </ul>
         )}
+        <div style={{ borderTop: "1px solid var(--color-line)" }}>
+          <QuickLog athleteId={athlete.id} date={date} partnerName={partner?.name ?? null} />
+        </div>
       </section>
 
       <StepsCard key={`steps:${k}`} athleteId={athlete.id} date={date} initial={day.log?.steps ?? null} target={athlete.steps_target} />

@@ -27,7 +27,7 @@ export default async function NewSessionPage({ searchParams }: PageProps<"/planu
       <NewSessionForm
         date={date}
         back={back}
-        defaultStatus={date < berlinToday() ? "done" : "planned"}
+        defaultStatus={params.status === "erledigt" || date < berlinToday() ? "done" : "planned"}
         athletes={athletes.map((a) => ({ id: a.id, name: a.name }))}
         defaultWho={selected.id}
         templates={templates.map((t) => ({

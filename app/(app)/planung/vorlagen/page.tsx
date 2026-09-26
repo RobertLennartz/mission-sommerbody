@@ -48,7 +48,7 @@ export default async function TemplatesPage() {
           <form action={createTemplate} className="flex flex-col gap-3 p-4" style={{ borderTop: "1px solid var(--color-line)" }}>
             <span className="t-label">Neue Vorlage</span>
             <input name="name" className="field" placeholder="Name, z. B. Oberkörper" maxLength={60} required />
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
               {CATEGORIES.map((c, i) => (
                 <label key={c}>
                   <input type="radio" name="category" value={c} defaultChecked={i === 0} className="peer sr-only" />

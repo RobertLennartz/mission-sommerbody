@@ -10,7 +10,7 @@ import { invalid, saved, type SaveResult } from "@/lib/save-result";
 import { check, db, unwrap } from "@/lib/supabase/server";
 import type { Category, PlanTemplateExerciseRow, PlanTemplateRow, SessionRow, SessionSetRow } from "@/lib/supabase/database.types";
 
-const CATEGORIES = ["strength", "cardio", "hiit"] as const;
+const CATEGORIES = ["strength", "cardio", "hiit", "recovery"] as const;
 const STATUSES = ["planned", "done", "skipped"] as const;
 
 function toResult(error: unknown): SaveResult {
@@ -67,6 +67,32 @@ export async function createSessions(_prev: CreateState, formData: FormData): Pr
   const back = String(formData.get("back") ?? "");
   if (ids.length === 1 && (formData.get("status") === "done" || back === "session")) redirect(`/einheit/${ids[0]}`);
   redirect(back.startsWith("/") && !back.startsWith("//") ? back : `/planung?woche=${startOfIsoWeek(date)}`);
+}
+
+/**
+ * Quick log from the today page: "Was habt ihr heute gemacht?" Creates a done
+ * session (optionally for both) and opens the own one for details. Several per
+ * day are fine, each tap adds one more.
+ */
+export async function quickLogSession(athleteId: string, date: string, category: string, activity: string | null, both: boolean): Promise<void> {
+  await guard();
+  const athlete = await requireAthlete(athleteId);
+  const day = requireDate(date);
+  const cat = oneOf(category, ["strength", "cardio", "hiit", "recovery"] as const, "Kategorie");
+  const act = activity ? parseText(activity, TEXT_MAX.activity) : null;
+  if (act && !act.ok) throw new InputError(act.error);
+  const athletes = unwrap(await db().from("athletes").select("id").order("sort_order"), "Personen laden");
+  const ids = both ? [athlete.id, ...athletes.map((a) => a.id).filter((id) => id !== athlete.id)] : [athlete.id];
+  const title = act?.ok && act.value ? act.value : cat === "strength" ? "Kraft" : cat === "hiit" ? "HIIT" : cat === "recovery" ? "Recovery" : "Ausdauer";
+  const created = unwrap(
+    await db().rpc("create_sessions", { p_athletes: ids, p_date: day, p_status: "done", p_template: null, p_category: cat, p_title: title }),
+    "Einheit anlegen",
+  ) as string[];
+  if (cat !== "strength" && act?.ok && act.value) {
+    check(await db().from("sessions").update({ activity: act.value }).in("id", created), "Aktivität speichern");
+  }
+  // create_sessions returns the ids in the order of p_athletes: the first is the own one.
+  redirect(`/einheit/${created[0]}`);
 }
 
 export type FillState = { error?: string; message?: string };

@@ -24,6 +24,7 @@
   --color-strength: #0B0C0B;
   --color-cardio:   #2553C9;
   --color-hiit:     #B0307A;
+  --color-recovery: #5B6B8C;
 
   --font-display: var(--font-archivo), "Archivo", system-ui, sans-serif;
   --font-mono:    var(--font-roboto-mono), "Roboto Mono", ui-monospace, monospace;

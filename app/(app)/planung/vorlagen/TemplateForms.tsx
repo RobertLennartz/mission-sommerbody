@@ -89,7 +89,7 @@ export function TemplateBasics({
       <AutosaveText label="Name" initial={name} max={TEXT_MAX.templateName} save={(v) => saveTemplateField(id, "name", v)} />
       <fieldset className="flex flex-col gap-1.5" aria-busy={pending}>
         <legend className="t-label mb-1.5">Kategorie</legend>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
           {CATEGORIES.map((c) => (
             <button
               key={c}

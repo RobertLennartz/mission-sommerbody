@@ -24,7 +24,9 @@ values
   ('Beine', 'strength', 60, null, null),
   ('Ganzkörper', 'strength', 60, null, null),
   ('HIIT-Kurs', 'hiit', 45, 'HIIT-Kurs', null),
-  ('Lauf 5 km', 'cardio', 30, 'Laufen', 5)
+  ('Lauf 5 km', 'cardio', 30, 'Laufen', 5),
+  ('Schwimmen', 'cardio', 45, 'Schwimmen', null),
+  ('Recovery', 'recovery', 30, 'Mobility', null)
 on conflict (name) do nothing;
 
 -- Template exercises, only for templates that have none yet.

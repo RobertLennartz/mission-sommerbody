@@ -23,8 +23,7 @@ export type AthleteRow = Base & {
   height_cm: number | null;
   protein_target_g_per_kg: number;
   steps_target: number;
-  strength_target_per_week: number;
-  cardio_target_per_week: number;
+  training_target_per_week: number;
 };
 
 export type CheckupType = "start" | "interim" | "end";
@@ -80,7 +79,7 @@ export type MealRow = Base & {
 
 export type ExerciseRow = Base & { name: string };
 
-export type Category = "strength" | "cardio" | "hiit";
+export type Category = "strength" | "cardio" | "hiit" | "recovery";
 export type SessionStatus = "planned" | "done" | "skipped";
 
 export type PlanTemplateRow = Base & {
@@ -155,8 +154,7 @@ export type Database = {
         | "height_cm"
         | "protein_target_g_per_kg"
         | "steps_target"
-        | "strength_target_per_week"
-        | "cardio_target_per_week"
+        | "training_target_per_week"
       >;
       checkups: Table<CheckupRow, Exclude<keyof CheckupRow, "athlete_id" | "type" | "date" | Auto>>;
       checkup_skinfolds: {

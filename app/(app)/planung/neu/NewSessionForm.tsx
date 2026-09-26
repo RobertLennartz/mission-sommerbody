@@ -72,7 +72,7 @@ export function NewSessionForm({
         <div className="flex flex-col gap-4 p-4" style={{ background: "var(--color-paper)" }}>
           <fieldset className="flex flex-col gap-1.5">
             <legend className="t-label mb-1.5">Kategorie</legend>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
               {CATEGORIES.map((c, i) => (
                 <label key={c}>
                   <input type="radio" name="category" value={c} defaultChecked={i === 0} className="peer sr-only" />
