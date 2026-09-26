@@ -1,5 +1,7 @@
-// Hand-written until the Supabase project exists; replace with
-// `generate_typescript_types` output once the migrations are applied.
+// Written by hand and checked column by column against the generated types
+// (Supabase generate_typescript_types, 26.09.2026). Kept by hand because the
+// generator types CHECK-constrained text columns as plain string, while the
+// unions below document the allowed values. Update both after a migration.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -143,6 +145,7 @@ export type SessionSetRow = Base & {
 export type LoginAttemptRow = { id: number; ip_hash: string; attempted_at: string };
 
 export type Database = {
+  __InternalSupabase: { PostgrestVersion: "14.5" };
   public: {
     Tables: {
       athletes: Table<
