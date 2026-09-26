@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design system "Trikot", taken over from One and Done: white, ink, flag
+   yellow. Light only. Additions for this app: category colors and a bottom
+   navigation for phones.
+   ========================================================================== */
+
+@theme {
+  --color-bg:       #FFFFFF;
+  --color-paper:    #F4F5F2;
+  --color-ink:      #0B0C0B;
+  --color-mute:     #6E7370;
+  --color-dead:     #B4B9B4;
+  --color-line:     #E2E4E0;
+  --color-acc:      #EFB100;
+  --color-acc-on:   #17130A;
+  --color-acc-tint: #FDF6E0;
+  --color-good:     #0F7B45;
+  --color-bad:      #C0281C;
+
+  /* Session categories. Kept away from yellow (signal) and green/red
+     (status); a letter code (K/A/H) always goes along with the color. */
+  --color-strength: #0B0C0B;
+  --color-cardio:   #2553C9;
+  --color-hiit:     #B0307A;
+
+  --font-display: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  --font-mono:    var(--font-roboto-mono), "Roboto Mono", ui-monospace, monospace;
+
+  /* Border radius is 0 everywhere. */
+  --radius-none: 0px;
+  --radius-sm:   0px;
+  --radius-md:   0px;
+  --radius-lg:   0px;
+  --radius-xl:   0px;
+  --radius-2xl:  0px;
+  --radius-3xl:  0px;
+  --radius-full: 0px;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  background: var(--color-bg);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*, *::before, *::after {
+  border-radius: 0 !important;
+}
+
+@layer components {
+  /* --- Typography ------------------------------------------------------ */
+
+  .t-head {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+
+  .t-strong {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .t-label {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .t-label-sm { font-size: 9px; }
+  .t-label-lg { font-size: 11px; }
+
+  .t-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- Surfaces -------------------------------------------------------- */
+
+  .card {
+    border: 1.5px solid var(--color-ink);
+    background: var(--color-bg);
+  }
+  .card-head {
+    background: var(--color-paper);
+    border-bottom: 1px solid var(--color-line);
+    padding: 8px 12px;
+  }
+  .divide-line > * + * {
+    border-top: 1px solid var(--color-line);
+  }
+
+  /* --- Buttons --------------------------------------------------------- */
+
+  .btn {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 13px;
+    min-height: 44px;
+    padding: 9px 16px;
+    border: 1.5px solid var(--color-ink);
+    background: var(--color-bg);
+    color: var(--color-ink);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 100ms linear, color 100ms linear;
+  }
+  .btn:hover:not(:disabled) { background: var(--color-paper); }
+  .btn:disabled { color: var(--color-dead); border-color: var(--color-line); cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--color-acc);
+    color: var(--color-acc-on);
+    border-color: var(--color-ink);
+  }
+  .btn-primary:hover:not(:disabled) { background: #E0A600; }
+  .btn-primary:disabled {
+    background: var(--color-paper);
+    color: var(--color-dead);
+    border-color: var(--color-line);
+  }
+
+  .btn-danger { color: var(--color-bad); }
+  .btn-sm { font-size: 11px; min-height: 36px; padding: 5px 10px; }
+
+  /* --- Forms ------------------------------------------------------------ */
+
+  /* 16 px on purpose: below that iOS zooms into the page on focus. */
+  .field {
+    border: 1.5px solid var(--color-ink);
+    background: var(--color-bg);
+    color: var(--color-ink);
+    padding: 10px 12px;
+    min-height: 44px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 16px;
+    width: 100%;
+  }
+  .field::placeholder { color: var(--color-dead); }
+  .field:focus { outline: 3px solid var(--color-acc); outline-offset: -1.5px; }
+  .field[aria-invalid="true"] { border-color: var(--color-bad); }
+
+  /* --- Status pill ------------------------------------------------------ */
+
+  .pill {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border: 1px solid currentColor;
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  /* --- Segmented switch (Robert / Eddie) ------------------------------ */
+
+  .seg {
+    display: inline-flex;
+    border: 1.5px solid var(--color-bg);
+  }
+  .seg > * {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    min-height: 36px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-bg);
+    background: transparent;
+    cursor: pointer;
+  }
+  .seg > [aria-pressed="true"] {
+    background: var(--color-acc);
+    color: var(--color-acc-on);
+  }
+
+  /* --- Focus (keyboard) --------------------------------------------------- */
+  :where(a, button, [role="button"], input, select, textarea, summary):focus-visible {
+    outline: 3px solid var(--color-acc);
+    outline-offset: 2px;
+  }
+}
