@@ -8,6 +8,13 @@ import { CATEGORY_LABEL } from "@/lib/categories";
 import { getDay, proteinBasis } from "@/lib/data/day";
 import { berlinToday, isIsoDate } from "@/lib/dates";
 import { formatDecimal } from "@/lib/numbers";
+import { durationLabel, formatPace, paceSecPerKm } from "@/lib/duration";
+import type { SessionRow } from "@/lib/supabase/database.types";
+
+function pace(s: SessionRow): string | null {
+  const p = s.category === "strength" ? null : paceSecPerKm(s.duration_sec, s.distance_km);
+  return p === null ? null : formatPace(p);
+}
 import { BodyCard, NotesCard, StepsCard } from "./DayForms";
 import { MealsCard, proteinBasisText } from "./MealsCard";
 import { QuickLog } from "./QuickLog";
@@ -53,8 +60,9 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
                     </span>
                     <span className="t-label t-label-sm text-mute">
                       {CATEGORY_LABEL[s.category]}
-                      {s.duration_min ? ` · ${s.duration_min} min` : ""}
+                      {s.duration_sec ? ` · ${durationLabel(s.duration_sec)}` : ""}
                       {s.distance_km ? ` · ${formatDecimal(s.distance_km, 2)} km` : ""}
+                      {pace(s) ? ` · ${pace(s)}` : ""}
                       {s.pair_id ? " · gemeinsam" : ""}
                     </span>
                   </span>

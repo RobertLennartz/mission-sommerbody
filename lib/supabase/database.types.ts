@@ -115,7 +115,7 @@ export type SessionRow = Base & {
   category: Category;
   title: string;
   status: SessionStatus;
-  duration_min: number | null;
+  duration_sec: number | null;
   rpe: number | null;
   activity: string | null;
   distance_km: number | null;
@@ -177,7 +177,7 @@ export type Database = {
         SessionRow,
         | "slot"
         | "status"
-        | "duration_min"
+        | "duration_sec"
         | "rpe"
         | "activity"
         | "distance_km"

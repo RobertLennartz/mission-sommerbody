@@ -9,7 +9,7 @@ import { getExercises, getSession, lastPerformances, type LastPerformance } from
 import { formatDayLong, formatDayShort } from "@/lib/dates";
 import { formatDecimal } from "@/lib/numbers";
 import { db } from "@/lib/supabase/server";
-import { AddExerciseForm, CardioFields, ExerciseBlock, RpeButtons, SessionBasics, StatusButtons } from "./SessionForms";
+import { AddExerciseForm, ExerciseBlock, RpeButtons, SessionBasics, StatusButtons, TrainingNumbers } from "./SessionForms";
 
 export const metadata: Metadata = { title: "Einheit" };
 
@@ -95,10 +95,15 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
           <h2 className="t-label t-label-lg">Details</h2>
         </div>
         <div className="flex flex-col gap-4 p-4">
-          <SessionBasics id={session.id} title={session.title} date={session.date} duration={session.duration_min} notes={session.notes} />
-          {session.category !== "strength" ? (
-            <CardioFields id={session.id} activity={session.activity} distance={session.distance_km} avgHr={session.avg_hr} />
-          ) : null}
+          <TrainingNumbers
+            id={session.id}
+            withDistance={session.category !== "strength"}
+            duration={session.duration_sec}
+            distance={session.distance_km}
+            avgHr={session.avg_hr}
+            activity={session.activity}
+          />
+          <SessionBasics id={session.id} title={session.title} date={session.date} notes={session.notes} />
           <RpeButtons id={session.id} initial={session.rpe} />
         </div>
       </section>

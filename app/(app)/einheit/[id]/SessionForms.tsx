@@ -16,7 +16,8 @@ import {
   type ExerciseState,
 } from "@/app/actions/training";
 import { FIELDS, TEXT_MAX, parseField } from "@/lib/fields";
-import { toInputValue } from "@/lib/numbers";
+import { formatDecimal, toInputValue } from "@/lib/numbers";
+import { formatDuration, formatPace, paceSecPerKm, parseDuration, speedKmh, validateDuration } from "@/lib/duration";
 import type { SessionStatus } from "@/lib/supabase/database.types";
 
 export function StatusButtons({
@@ -102,32 +103,11 @@ export function RpeButtons({ id, initial }: { id: string; initial: number | null
   );
 }
 
-export function SessionBasics({
-  id,
-  title,
-  date,
-  duration,
-  notes,
-}: {
-  id: string;
-  title: string;
-  date: string;
-  duration: number | null;
-  notes: string | null;
-}) {
+export function SessionBasics({ id, title, date, notes }: { id: string; title: string; date: string; notes: string | null }) {
   return (
     <>
       <AutosaveText label="Titel" initial={title} max={TEXT_MAX.title} save={(v) => saveSessionField(id, "title", v)} />
-      <div className="grid grid-cols-2 gap-3">
-        <DateField id={id} initial={date} />
-        <AutosaveNumber
-          label="Dauer"
-          field={FIELDS.duration}
-          initial={duration === null ? "" : String(duration)}
-          draftKey={`ms:session:${id}:duration`}
-          save={(v) => saveSessionField(id, "duration_min", v)}
-        />
-      </div>
+      <DateField id={id} initial={date} />
       <AutosaveText
         label="Notiz"
         multiline
@@ -142,6 +122,92 @@ export function SessionBasics({
   );
 }
 
+function DurationField({ id, initial, onValue }: { id: string; initial: number | null; onValue: (sec: number | null) => void }) {
+  const htmlId = useId();
+  const auto = useAutosave({
+    id: htmlId,
+    initial: initial === null ? "" : initial % 60 === 0 ? String(initial / 60) : formatDuration(initial),
+    save: (v) => saveSessionField(id, "duration_sec", v),
+    validate: validateDuration,
+    draftKey: `ms:session:${id}:duration`,
+  });
+  return (
+    <label className="flex flex-col gap-1.5" htmlFor={htmlId}>
+      <span className="t-label">Dauer</span>
+      <input
+        id={htmlId}
+        className="field t-num"
+        inputMode="text"
+        autoComplete="off"
+        placeholder="45 oder 26:40"
+        value={auto.value}
+        aria-invalid={auto.status === "invalid" || undefined}
+        onChange={(e) => {
+          auto.change(e.target.value);
+          if (!validateDuration(e.target.value)) onValue(parseDuration(e.target.value));
+        }}
+        onBlur={() => void auto.flush()}
+      />
+      <SaveStatusText status={auto.status} savedAt={auto.savedAt} error={auto.error} />
+    </label>
+  );
+}
+
+/** Duration for every session; for running, swimming and co. also km, pace and heart rate. */
+export function TrainingNumbers({
+  id,
+  withDistance,
+  duration,
+  distance,
+  avgHr,
+  activity,
+}: {
+  id: string;
+  withDistance: boolean;
+  duration: number | null;
+  distance: number | null;
+  avgHr: number | null;
+  activity: string | null;
+}) {
+  const [sec, setSec] = useState<number | null>(duration);
+  const [km, setKm] = useState<number | null>(distance);
+  const pace = paceSecPerKm(sec, km);
+  const speed = speedKmh(sec, km);
+  if (!withDistance) return <DurationField id={id} initial={duration} onValue={setSec} />;
+  return (
+    <>
+      <AutosaveText label="Aktivität" initial={activity ?? ""} max={TEXT_MAX.activity} placeholder="Laufen, Schwimmen, Rad ..." save={(v) => saveSessionField(id, "activity", v)} />
+      <div className="grid grid-cols-2 gap-3">
+        <DurationField id={id} initial={duration} onValue={setSec} />
+        <AutosaveNumber
+          label="Distanz"
+          field={FIELDS.distance}
+          initial={toInputValue(distance)}
+          placeholder="z. B. 5,2"
+          draftKey={`ms:session:${id}:distance`}
+          onValue={setKm}
+          save={(v) => saveSessionField(id, "distance_km", v)}
+        />
+      </div>
+      <div className="flex items-baseline justify-between gap-3 px-3 py-2.5" style={{ background: "var(--color-paper)" }}>
+        <span className="t-label">Schnitt</span>
+        <span className="t-num text-[20px] font-medium">
+          {pace === null ? <span className="text-[14px] text-mute">Dauer und Distanz eintragen</span> : formatPace(pace)}
+        </span>
+        {speed !== null ? <span className="t-num text-[13px] text-mute">{formatDecimal(speed, 1, true)} km/h</span> : null}
+      </div>
+      <AutosaveNumber
+        label="Puls Ø"
+        field={FIELDS.heartRate}
+        initial={avgHr === null ? "" : String(avgHr)}
+        placeholder="optional"
+        draftKey={`ms:session:${id}:hr`}
+        save={(v) => saveSessionField(id, "avg_hr", v)}
+      />
+    </>
+  );
+}
+
 function DateField({ id, initial }: { id: string; initial: string }) {
   const htmlId = useId();
   const auto = useAutosave({ id: htmlId, initial, save: (v) => saveSessionField(id, "date", v), debounceMs: 0 });
@@ -151,42 +217,6 @@ function DateField({ id, initial }: { id: string; initial: string }) {
       <input id={htmlId} type="date" className="field" value={auto.value} onChange={(e) => auto.change(e.target.value)} />
       <SaveStatusText status={auto.status} savedAt={auto.savedAt} error={auto.error} />
     </label>
-  );
-}
-
-export function CardioFields({
-  id,
-  activity,
-  distance,
-  avgHr,
-}: {
-  id: string;
-  activity: string | null;
-  distance: number | null;
-  avgHr: number | null;
-}) {
-  return (
-    <>
-      <AutosaveText label="Aktivität" initial={activity ?? ""} max={TEXT_MAX.activity} placeholder="Laufen, Rad, HIIT-Kurs ..." save={(v) => saveSessionField(id, "activity", v)} />
-      <div className="grid grid-cols-2 gap-3">
-        <AutosaveNumber
-          label="Distanz"
-          field={FIELDS.distance}
-          initial={toInputValue(distance)}
-          placeholder="optional"
-          draftKey={`ms:session:${id}:distance`}
-          save={(v) => saveSessionField(id, "distance_km", v)}
-        />
-        <AutosaveNumber
-          label="Puls Ø"
-          field={FIELDS.heartRate}
-          initial={avgHr === null ? "" : String(avgHr)}
-          placeholder="optional"
-          draftKey={`ms:session:${id}:hr`}
-          save={(v) => saveSessionField(id, "avg_hr", v)}
-        />
-      </div>
-    </>
   );
 }
 

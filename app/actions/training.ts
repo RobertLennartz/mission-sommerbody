@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { FIELDS, TEXT_MAX, parseField, parseText } from "@/lib/fields";
 import { InputError, guard, oneOf, requireAthlete, requireDate, requireUuid } from "@/lib/data/guard";
 import { isIsoDate, startOfIsoWeek } from "@/lib/dates";
+import { parseDuration, validateDuration } from "@/lib/duration";
 import { MISSION_END, MISSION_START } from "@/lib/mission";
 import { invalid, saved, type SaveResult } from "@/lib/save-result";
 import { check, db, unwrap } from "@/lib/supabase/server";
@@ -215,7 +216,7 @@ export async function setSessionStatus(id: string, status: string): Promise<void
   refresh();
 }
 
-const SESSION_FIELDS = ["title", "duration_min", "rpe", "activity", "distance_km", "avg_hr", "notes", "date"] as const;
+const SESSION_FIELDS = ["title", "duration_sec", "rpe", "activity", "distance_km", "avg_hr", "notes", "date"] as const;
 
 export async function saveSessionField(id: string, field: string, raw: string): Promise<SaveResult> {
   try {
@@ -239,8 +240,12 @@ export async function saveSessionField(id: string, field: string, raw: string): 
         if (!Number.isInteger(n) || n < 1 || n > 10) throw new InputError("RPE von 1 bis 10.");
         value = n;
       }
+    } else if (column === "duration_sec") {
+      const problem = validateDuration(raw);
+      if (problem) throw new InputError(problem);
+      value = parseDuration(raw);
     } else {
-      const spec = column === "duration_min" ? FIELDS.duration : column === "distance_km" ? FIELDS.distance : FIELDS.heartRate;
+      const spec = column === "distance_km" ? FIELDS.distance : FIELDS.heartRate;
       const r = parseField(raw, spec);
       if (!r.ok) throw new InputError(r.error);
       value = r.value;
