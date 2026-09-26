@@ -11,7 +11,7 @@ Plan und Entscheidungen: [`.planning/plan.md`](.planning/plan.md)
 | Framework | Next.js 16 (App Router, TypeScript, Server Actions, `proxy.ts`) |
 | Styling | Tailwind CSS 4, Design-Tokens aus One and Done in `app/globals.css` |
 | Datenbank | Supabase Postgres, Zugriff nur serverseitig mit dem Secret Key |
-| Hosting | Vercel, Funktionen in Frankfurt (`fra1`, siehe `vercel.json`) |
+| Hosting | Vercel, Funktionen in Dublin (`dub1`, neben der Supabase-Datenbank in Irland, siehe `vercel.json`) |
 | Tests | Vitest |
 
 ## Setup
@@ -62,7 +62,7 @@ npm run dev
 1. Auf vercel.com/new das Repo `mission-sommerbody` importieren (Framework wird erkannt).
 2. Vor dem ersten Deploy die vier Variablen unter **Environment Variables** eintragen.
 3. Deploy. Danach deployt jeder Push auf `main` automatisch.
-4. Region prüfen: **Settings > Functions > Function Region** muss Frankfurt (`fra1`) zeigen. Das kommt aus `vercel.json`.
+4. Region prüfen: **Settings > Functions > Function Region** muss Dublin (`dub1`) zeigen. Das kommt aus `vercel.json`.
 
 ## Prüfen
 
