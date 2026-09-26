@@ -8,6 +8,13 @@ export const CATEGORY_COLOR: Record<Category, string> = {
   hiit: "var(--color-hiit)",
   recovery: "var(--color-recovery)",
 };
+/** Text on a filled category mark: white on the dark two, ink on the light two. */
+export const CATEGORY_ON_COLOR: Record<Category, string> = {
+  strength: "#FFFFFF",
+  cardio: "#FFFFFF",
+  hiit: "var(--color-ink)",
+  recovery: "var(--color-ink)",
+};
 export const CATEGORIES: Category[] = ["strength", "cardio", "hiit", "recovery"];
 
 /** Quick buttons on the today page: "Was habt ihr heute gemacht?" */

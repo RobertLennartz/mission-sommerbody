@@ -31,7 +31,9 @@ npm install
    1. `supabase/migrations/0001_schema.sql`
    2. `supabase/migrations/0002_functions.sql`
    3. `supabase/migrations/0003_security.sql`
-   4. `supabase/seed.sql` (Robert, Eddie, Übungen, Vorlagen, Standardwoche; mehrfach ausführbar)
+   4. `supabase/migrations/0004_flexible_training.sql`
+   5. `supabase/migrations/0005_duration_seconds.sql`
+   6. `supabase/seed.sql` (Robert, Eddie, Übungen, Vorlagen, Standardwoche; mehrfach ausführbar)
 3. Unter **Settings > API Keys** den Secret Key (`sb_secret_...`) kopieren.
 
 Die Migrationen schalten RLS auf allen Tabellen ein und geben nur der Rolle `service_role` Rechte. Mit dem öffentlichen Key ist nichts lesbar.
@@ -68,6 +70,14 @@ Neu einrichten, falls nötig:
 3. Im Projektordner: `npx vercel link --project mission-sommerbody` und `npx vercel git connect`
 4. Die vier Variablen setzen, zum Beispiel `npx vercel env add APP_PASSWORD production --sensitive`
 5. Region prüfen: **Settings > Functions > Function Region** muss Dublin (`dub1`) zeigen. Das kommt aus `vercel.json`.
+
+## Was die App kann
+
+- **Heute:** "Was habt ihr gemacht?" per Antippen (Kraft, Laufen, Schwimmen, Rad, HIIT, Recovery), auch mehrere Trainings am Tag und für beide zugleich. Schritte, Morgengewicht, Schlaf, Energie, Mahlzeiten mit Proteinziel, Bemerkungen. Alles speichert automatisch.
+- **Einheit:** Kraft mit eigenen Übungen und Sätzen, der letzte Wert derselben Übung steht als Referenz daneben. Ausdauer mit Dauer (45, 26:40 oder 1:05:30) und km, der Schnitt (min/km, km/h) wird berechnet.
+- **Woche, Planung, Vorlagen:** optional planen, Woche aus Vorlage füllen, verschieben. Ein Wochenziel für alle Trainings, Recovery zählt extra.
+- **Ernährung, Checkups, Übersicht:** Protein pro Tag und Woche, Körperfett nach Jackson/Pollock mit Start-gegen-Ende-Vergleich, Verläufe.
+- **Export:** CSV und ZIP unter Einstellungen.
 
 ## Prüfen
 

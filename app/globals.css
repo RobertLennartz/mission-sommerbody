@@ -20,11 +20,13 @@
   --color-bad:      #C0281C;
 
   /* Session categories. Kept away from yellow (signal) and green/red
-     (status); a letter code (K/A/H) always goes along with the color. */
-  --color-strength: #0B0C0B;
-  --color-cardio:   #2553C9;
-  --color-hiit:     #B0307A;
-  --color-recovery: #5B6B8C;
+     (status); checked with the dataviz validator (all pairs CVD dE >= 9.2).
+     Turquoise is below 3:1 on white, so the letter code (K/A/H/R) always
+     goes along with the color. */
+  --color-strength: #4A3AA7;
+  --color-cardio:   #2A78D6;
+  --color-hiit:     #EB6834;
+  --color-recovery: #1BAF7A;
 
   --font-display: var(--font-archivo), "Archivo", system-ui, sans-serif;
   --font-mono:    var(--font-roboto-mono), "Roboto Mono", ui-monospace, monospace;

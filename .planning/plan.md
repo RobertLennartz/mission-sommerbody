@@ -1,8 +1,16 @@
 # Mission Sommerbody: Plan
 
-Stand: 26.09.2026. Status: **wartet auf Freigabe**. Gebaut wird erst nach deinem OK.
+Stand: 26.09.2026. Status: **freigegeben und gebaut**. Änderungen nach der Freigabe stehen direkt unten.
 
-## Was ich von dir brauche
+## Änderungen während des Baus (26.09.2026)
+
+- **Supabase liegt in Irland** (eu-west-1), nicht in Frankfurt. So wurde das Projekt angelegt. Die Vercel-Funktionen laufen deshalb in Dublin (`dub1`), direkt daneben.
+- **Flexibles Training statt 3 + 3** (Robert): Auf "Heute" wird per Antippen erfasst, was gemacht wurde: Kraft, Laufen, Schwimmen, Rad, HIIT, Recovery. Mehrere Trainings pro Tag gehen. Neue Kategorie **Recovery**. Das Wochenziel ist eine Zahl (Default 5), Recovery zählt nicht mit, wird aber angezeigt. In der Kurzwoche KW 46 gilt das Ziel anteilig. Migration `0004`.
+- **Dauer in Sekunden** (Robert): Eingabe 45, 26:40 oder 1:05:30. Mit den km wird der Schnitt (min/km, km/h) berechnet. Migration `0005`.
+- **Kategorienfarben** mit dem Dataviz-Validator geprüft und ersetzt: Kraft violett, Ausdauer blau, HIIT orange, Recovery türkis, immer mit Kürzel K/A/H/R.
+- Deployment: Vercel-Projekt ist mit GitHub verbunden, jeder Push auf `main` geht live.
+
+## Was ich von dir brauchte (vor dem Bau)
 
 1. **Supabase-Projekt (blockiert Meilenstein 1):** Dein Supabase-Konto hat das Limit von zwei Gratis-Projekten erreicht. In der Org "boomlike GmbH" (Free-Plan) laufen `gridiron-survivor` und `Fussball`, beide in Irland (eu-west-1). Ein drittes Gratis-Projekt lässt Supabase nicht zu, auch nicht in einer neuen Org. Empfehlung und Alternativen stehen in Abschnitt 12.
 2. **GitHub-Repo anlegen:** Die gh CLI ist auf diesem Mac nicht installiert (Homebrew auch nicht). SSH zu GitHub funktioniert aber (Konto RobertLennartz). Bitte auf https://github.com/new ein **privates, leeres** Repo `mission-sommerbody` anlegen, ohne README, ohne .gitignore, ohne Lizenz. Der erste Commit mit diesem Plan liegt lokal bereit, ich pushe, sobald das Repo existiert.

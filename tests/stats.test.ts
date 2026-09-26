@@ -60,3 +60,20 @@ describe("weekGoal", () => {
     expect(weekGoal([], "2026-11-09", 5)).toEqual({ training: { done: 0, target: 4 }, recovery: 0 });
   });
 });
+
+import { linear, niceTicks } from "@/lib/chart-scale";
+
+describe("chart scale", () => {
+  it("maps linearly", () => {
+    const x = linear([0, 10], [0, 100]);
+    expect(x(5)).toBe(50);
+  });
+
+  it("finds nice ticks that cover the data", () => {
+    expect(niceTicks(84.3, 91.2)).toEqual([84, 86, 88, 90, 92]);
+    expect(niceTicks(0, 14000)).toEqual([0, 5000, 10000, 15000]);
+    const t = niceTicks(80, 80);
+    expect(t[0]).toBeLessThanOrEqual(79);
+    expect(t[t.length - 1]).toBeGreaterThanOrEqual(81);
+  });
+});

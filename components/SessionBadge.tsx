@@ -1,4 +1,4 @@
-import { CATEGORY_CODE, CATEGORY_COLOR, CATEGORY_LABEL } from "@/lib/categories";
+import { CATEGORY_CODE, CATEGORY_COLOR, CATEGORY_LABEL, CATEGORY_ON_COLOR } from "@/lib/categories";
 import type { Category, SessionStatus } from "@/lib/supabase/database.types";
 
 /**
@@ -19,7 +19,7 @@ export function CategoryMark({ category, status, size = 28 }: { category: Catego
         fontSize: Math.round(size * 0.46),
         border: `2px solid ${color}`,
         background: filled ? color : "transparent",
-        color: filled ? "var(--color-bg)" : color,
+        color: filled ? CATEGORY_ON_COLOR[category] : color,
       }}
     >
       {CATEGORY_CODE[category]}
