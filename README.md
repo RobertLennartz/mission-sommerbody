@@ -61,7 +61,9 @@ npm run dev
 
 ### 5. Vercel
 
-Das Projekt `mission-sommerbody` (Scope `robert-6581s-projects`) ist mit diesem Repo verbunden: **jeder Push auf `main` deployt automatisch** nach https://mission-sommerbody.vercel.app.
+Das Projekt `mission-sommerbody` (Scope `robert-6581s-projects`) ist mit diesem Repo verbunden: **jeder Push auf `main` deployt automatisch** nach https://sommerbody.boomlike.de (und https://mission-sommerbody.vercel.app).
+
+Domain: `sommerbody.boomlike.de` ist im Vercel-Projekt eingetragen. DNS bei manitu (dns01/dns02.manitu.net): `CNAME sommerbody → f8c4e0aed05ff870.vercel-dns-017.com.` Den Zielwert zeigt `npx vercel domains verify sommerbody.boomlike.de`.
 
 Neu einrichten, falls nötig:
 
