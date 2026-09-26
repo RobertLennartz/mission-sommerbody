@@ -10,6 +10,7 @@ import { MISSION_END, MISSION_START } from "@/lib/mission";
 import { RECOVERY_OPTIONS } from "@/lib/categories";
 import { invalid, saved, type SaveResult } from "@/lib/save-result";
 import { check, db, unwrap } from "@/lib/supabase/server";
+import { lastPerformances } from "@/lib/data/training";
 import type { Category, PlanTemplateExerciseRow, PlanTemplateRow, SessionRow, SessionSetRow } from "@/lib/supabase/database.types";
 
 const CATEGORIES = ["strength", "cardio", "hiit", "recovery"] as const;
@@ -350,6 +351,94 @@ export async function removeSessionExercise(sessionExerciseId: string): Promise<
     "Übung entfernen",
   );
   refresh();
+}
+
+/**
+ * "Wie letztes Mal": copies reps and kg of the last done session with the
+ * same exercise into the empty sets of this one. Never overwrites a value.
+ */
+export async function copyLastPerformance(sessionExerciseId: string): Promise<void> {
+  await guard();
+  const id = requireUuid(sessionExerciseId, "Übung");
+  const row = unwrap(await db().from("session_exercises").select("*").eq("id", id).single(), "Übung laden");
+  const session = await loadSession(row.session_id);
+  const last = (
+    await lastPerformances(session.athlete_id, [row.exercise_id], { date: session.date, slot: session.slot, sessionId: session.id })
+  ).get(row.exercise_id);
+  if (!last) return;
+  const current = unwrap(await db().from("session_sets").select("*").eq("session_exercise_id", id), "Sätze laden");
+  for (const s of last.sets) {
+    const existing = current.find((c) => c.set_no === s.set_no);
+    if (existing && (existing.reps !== null || existing.weight_kg !== null)) continue;
+    check(
+      await db()
+        .from("session_sets")
+        .upsert({ session_exercise_id: id, set_no: s.set_no, reps: s.reps, weight_kg: s.weight_kg }, { onConflict: "session_exercise_id,set_no" }),
+      "Satz übernehmen",
+    );
+  }
+  const maxSet = Math.max(...last.sets.map((s) => s.set_no));
+  if (maxSet > (row.target_sets ?? 0)) {
+    check(await db().from("session_exercises").update({ target_sets: maxSet }).eq("id", id), "Satzzahl speichern");
+  }
+  refresh();
+}
+
+export type TemplateState = { error?: string; created?: { id: string; name: string } };
+
+/** "Als Vorlage speichern": the exercises of this session, with their set count, as a new template. */
+export async function saveSessionAsTemplate(sessionId: string, _prev: TemplateState, formData: FormData): Promise<TemplateState> {
+  await guard();
+  try {
+    const session = await loadSession(sessionId);
+    const name = parseText(String(formData.get("name") ?? ""), TEXT_MAX.templateName);
+    if (!name.ok) throw new InputError(name.error);
+    if (!name.value) throw new InputError("Bitte einen Namen eingeben.");
+    const exercises = unwrap(
+      await db().from("session_exercises").select("*").eq("session_id", session.id).order("position"),
+      "Übungen laden",
+    );
+    if (exercises.length === 0) throw new InputError("Die Einheit hat noch keine Übungen.");
+    const sets = unwrap(
+      await db().from("session_sets").select("session_exercise_id, set_no, reps, weight_kg").in("session_exercise_id", exercises.map((e) => e.id)),
+      "Sätze laden",
+    );
+    const inserted = await db()
+      .from("plan_templates")
+      .insert({
+        name: name.value,
+        category: session.category,
+        default_duration_min: session.duration_sec ? Math.max(1, Math.round(session.duration_sec / 60)) : 60,
+      })
+      .select("id")
+      .single();
+    if (inserted.error) {
+      if (inserted.error.code === "23505") throw new InputError("Eine Vorlage mit diesem Namen gibt es schon.");
+      throw new Error(inserted.error.message);
+    }
+    check(
+      await db()
+        .from("plan_template_exercises")
+        .insert(
+          exercises.map((e, i) => {
+            const own = sets.filter((s) => s.session_exercise_id === e.id && (s.reps !== null || s.weight_kg !== null));
+            return {
+              template_id: inserted.data.id,
+              position: i + 1,
+              exercise_id: e.exercise_id,
+              target_sets: Math.min(20, Math.max(1, e.target_sets ?? 0, ...own.map((s) => s.set_no))),
+              target_reps: e.target_reps,
+            };
+          }),
+        ),
+      "Vorlage speichern",
+    );
+    return { created: { id: inserted.data.id, name: name.value } };
+  } catch (error) {
+    if (error instanceof InputError) return { error: error.message };
+    console.error(error);
+    return { error: "Speichern hat nicht geklappt. Bitte noch einmal versuchen." };
+  }
 }
 
 /** Number of set rows shown for an exercise (add or remove a row). */

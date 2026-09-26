@@ -5,8 +5,12 @@ import { AutosaveNumber } from "@/components/form/AutosaveNumber";
 import { AutosaveText } from "@/components/form/AutosaveText";
 import { SaveStatusText } from "@/components/form/SaveStatusText";
 import { useAutosave } from "@/components/form/useAutosave";
+import Link from "next/link";
 import {
   addSessionExercise,
+  copyLastPerformance,
+  saveSessionAsTemplate,
+  type TemplateState,
   deleteSession,
   removeSessionExercise,
   saveSessionField,
@@ -282,12 +286,19 @@ export type ExerciseView = {
   targetReps: string | null;
   sets: { set_no: number; reps: number | null; weight_kg: number | null }[];
   last: string | null;
+  /** Sets of the last done session with this exercise: shown grey as placeholders. */
+  lastSets: { set_no: number; reps: number | null; weight_kg: number | null }[];
 };
 
 export function ExerciseBlock({ exercise }: { exercise: ExerciseView }) {
   const [pending, startTransition] = useTransition();
-  const rows = Math.max(exercise.targetSets ?? 0, ...exercise.sets.map((s) => s.set_no), 1);
+  const rows = Math.max(exercise.targetSets ?? 0, ...exercise.sets.map((s) => s.set_no), ...exercise.lastSets.map((s) => s.set_no), 1);
   const bySet = new Map(exercise.sets.map((s) => [s.set_no, s]));
+  const lastBySet = new Map(exercise.lastSets.map((s) => [s.set_no, s]));
+  const canCopy = exercise.lastSets.some((l) => {
+    const own = bySet.get(l.set_no);
+    return !own || (own.reps === null && own.weight_kg === null);
+  });
   return (
     <li className="flex flex-col gap-2 px-4 py-4">
       <div className="flex items-start justify-between gap-2">
@@ -328,7 +339,7 @@ export function ExerciseBlock({ exercise }: { exercise: ExerciseView }) {
                 setNo={setNo}
                 field="reps"
                 initial={s?.reps === null || s?.reps === undefined ? "" : String(s.reps)}
-                placeholder={exercise.targetReps ?? ""}
+                placeholder={lastBySet.get(setNo)?.reps != null ? String(lastBySet.get(setNo)!.reps) : (exercise.targetReps ?? "")}
               />
               <SetInput
                 label={`Satz ${setNo} Gewicht`}
@@ -336,12 +347,23 @@ export function ExerciseBlock({ exercise }: { exercise: ExerciseView }) {
                 setNo={setNo}
                 field="weight_kg"
                 initial={toInputValue(s?.weight_kg ?? null)}
+                placeholder={toInputValue(lastBySet.get(setNo)?.weight_kg ?? null)}
               />
             </div>
           );
         })}
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
+        {canCopy ? (
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            disabled={pending}
+            onClick={() => startTransition(() => copyLastPerformance(exercise.id))}
+          >
+            Wie letztes Mal
+          </button>
+        ) : null}
         <button type="button" className="btn btn-sm" disabled={pending || rows >= 20} onClick={() => startTransition(() => setTargetSets(exercise.id, rows + 1))}>
           + Satz
         </button>
@@ -398,6 +420,45 @@ export function AddExerciseForm({ sessionId, suggestions }: { sessionId: string;
           <option key={s} value={s} />
         ))}
       </datalist>
+      {state.error ? <p className="text-[14px] text-bad">{state.error}</p> : null}
+    </form>
+  );
+}
+
+export function SaveAsTemplateForm({ sessionId, suggestedName }: { sessionId: string; suggestedName: string }) {
+  const [state, action, pending] = useActionState<TemplateState, FormData>(saveSessionAsTemplate.bind(null, sessionId), {});
+  const [open, setOpen] = useState(false);
+  if (state.created) {
+    return (
+      <p className="p-4 text-[14px]" role="status">
+        Vorlage &quot;{state.created.name}&quot; gespeichert.{" "}
+        <Link href={`/planung/vorlagen/${state.created.id}`} className="underline">
+          Ansehen
+        </Link>
+      </p>
+    );
+  }
+  if (!open) {
+    return (
+      <div className="p-4">
+        <button type="button" className="btn btn-sm" onClick={() => setOpen(true)}>
+          Als Vorlage speichern
+        </button>
+      </div>
+    );
+  }
+  return (
+    <form action={action} className="flex flex-col gap-2 p-4">
+      <label className="flex flex-col gap-1.5">
+        <span className="t-label">Name der neuen Vorlage</span>
+        <div className="flex gap-2">
+          <input name="name" className="field" defaultValue={suggestedName} maxLength={60} required autoFocus />
+          <button type="submit" className="btn btn-primary shrink-0" disabled={pending}>
+            Speichern
+          </button>
+        </div>
+      </label>
+      <span className="t-label t-label-sm text-mute">Übernimmt alle Übungen dieser Einheit mit ihrer Satzzahl.</span>
       {state.error ? <p className="text-[14px] text-bad">{state.error}</p> : null}
     </form>
   );

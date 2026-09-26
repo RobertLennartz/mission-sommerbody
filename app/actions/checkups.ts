@@ -21,7 +21,7 @@ function toResult(error: unknown): SaveResult {
 export async function openCheckup(formData: FormData): Promise<void> {
   await guard();
   const athlete = await requireAthlete(formData.get("athlete"));
-  const type = oneOf(formData.get("type"), ["start", "interim", "end"] as const, "Checkup-Art");
+  const type = oneOf(formData.get("type"), ["start", "end"] as const, "Checkup-Art");
   const existing = await db().from("checkups").select("id").eq("athlete_id", athlete.id).eq("type", type).maybeSingle();
   if (existing.error) throw new Error(existing.error.message);
   let id = existing.data?.id;

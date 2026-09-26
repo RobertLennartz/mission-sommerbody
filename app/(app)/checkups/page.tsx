@@ -29,23 +29,23 @@ export default async function CheckupsPage() {
       <div>
         <h1 className="t-head text-[30px]">Checkups</h1>
         <p className="mt-1 text-[15px] text-mute">
-          Start am 12.10., Ende am 13.11., optional ein Zwischen-Checkup. Körperfett nach Jackson/Pollock (7 Hautfalten).
+          Start am 12.10., Ende am 13.11. Körperfett nach Jackson/Pollock (7 Hautfalten).
         </p>
       </div>
 
       {athletes.map((athlete) => {
         const own = checkups.filter((c) => c.athlete_id === athlete.id);
         const byType = Object.fromEntries(own.map((c) => [c.type, c])) as Partial<Record<CheckupDetail["type"], CheckupDetail>>;
-        const columns = CHECKUP_TYPES.filter((t) => t !== "interim" || byType.interim).map((t) => ({ type: t, c: byType[t] }));
+        const columns = CHECKUP_TYPES.map((t) => ({ type: t, c: byType[t] }));
         const first = byType.start;
-        const last = byType.end ?? byType.interim;
+        const last = byType.end;
         return (
           <section key={athlete.id} className="card">
             <div className="card-head flex items-baseline justify-between">
               <h2 className="t-strong text-[16px] uppercase">{athlete.name}</h2>
               {athlete.birth_year === null ? <span className="t-label text-bad">Geburtsjahr fehlt</span> : null}
             </div>
-            <div className="grid grid-cols-3 gap-2 p-4">
+            <div className="grid grid-cols-2 gap-2 p-4">
               {CHECKUP_TYPES.map((type) => {
                 const c = byType[type];
                 return (
@@ -115,7 +115,7 @@ export default async function CheckupsPage() {
                   </tbody>
                 </table>
                 <p className="px-3 py-2 text-[12px] text-mute">
-                  Differenz = {byType.end ? "Ende" : "Zwischen"} minus Start. Negative Werte heißen weniger.
+                  Differenz = Ende minus Start. Negative Werte heißen weniger.
                 </p>
               </div>
             ) : (

@@ -32,4 +32,5 @@ export const CIRCUMFERENCES: { key: CircumferenceKey; label: string; hint: strin
 ];
 
 export const CHECKUP_TYPE_LABEL: Record<CheckupType, string> = { start: "Start", interim: "Zwischen", end: "Ende" };
-export const CHECKUP_TYPES: CheckupType[] = ["start", "interim", "end"];
+/** Robert, 27.09.2026: only a start and an end checkup, no interim one. */
+export const CHECKUP_TYPES: CheckupType[] = ["start", "end"];

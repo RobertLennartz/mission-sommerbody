@@ -9,7 +9,7 @@ import { getExercises, getSession, lastPerformances, type LastPerformance } from
 import { formatDayLong, formatDayShort } from "@/lib/dates";
 import { formatDecimal } from "@/lib/numbers";
 import { db } from "@/lib/supabase/server";
-import { AddExerciseForm, ExerciseBlock, RpeButtons, SessionBasics, StatusButtons, TrainingNumbers } from "./SessionForms";
+import { AddExerciseForm, ExerciseBlock, RpeButtons, SaveAsTemplateForm, SessionBasics, StatusButtons, TrainingNumbers } from "./SessionForms";
 
 export const metadata: Metadata = { title: "Einheit" };
 
@@ -54,7 +54,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
       <div className="flex items-center gap-3">
         <CategoryMark category={session.category} status={session.status} size={40} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <h1 className="t-head truncate text-[26px]">{session.title}</h1>
+          <h1 className="t-head text-[26px] [overflow-wrap:anywhere]">{session.title}</h1>
           <span className="t-label text-mute">
             {athlete?.name} · {CATEGORY_LABEL[session.category]} · {formatDayLong(session.date)}
             {partnerName ? ` · gemeinsam mit ${partnerName}` : ""}
@@ -72,7 +72,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
           <ul className="divide-line">
             {exercises.map((e) => (
               <ExerciseBlock
-                key={`${e.id}:${e.target_sets}:${e.sets.length}`}
+                key={`${e.id}:${e.target_sets}:${e.sets.map((s) => `${s.set_no}-${s.reps}-${s.weight_kg}`).join(",")}`}
                 exercise={{
                   id: e.id,
                   name: e.name,
@@ -80,6 +80,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
                   targetReps: e.target_reps,
                   sets: e.sets,
                   last: lastText(last.get(e.exercise_id)),
+                  lastSets: last.get(e.exercise_id)?.sets ?? [],
                 }}
               />
             ))}
@@ -87,6 +88,11 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
           <div style={{ borderTop: "1px solid var(--color-line)" }}>
             <AddExerciseForm sessionId={session.id} suggestions={catalog.map((c) => c.name)} />
           </div>
+          {exercises.length > 0 ? (
+            <div style={{ borderTop: "1px solid var(--color-line)" }}>
+              <SaveAsTemplateForm sessionId={session.id} suggestedName={`${session.title} (neu)`} />
+            </div>
+          ) : null}
         </section>
       ) : null}
 
