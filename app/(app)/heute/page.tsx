@@ -6,6 +6,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { requireSelectedAthlete } from "@/lib/athletes";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { getDay, proteinBasis } from "@/lib/data/day";
+import { getTemplates } from "@/lib/data/training";
 import { berlinToday, isIsoDate } from "@/lib/dates";
 import { formatDecimal } from "@/lib/numbers";
 import { durationLabel, formatPace, paceSecPerKm } from "@/lib/duration";
@@ -27,7 +28,12 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
   const today = berlinToday();
   const date = isIsoDate(params.datum) ? params.datum : today;
   const athlete = await requireSelectedAthlete();
-  const [day, basis, athletes] = await Promise.all([getDay(athlete.id, date), proteinBasis(athlete.id, date), getAthletes()]);
+  const [day, basis, athletes, templates] = await Promise.all([getDay(athlete.id, date), proteinBasis(athlete.id, date), getAthletes(), getTemplates()]);
+  // Own plans first (newest), the original examples after.
+  const strengthTemplates = templates
+    .filter((t) => t.category === "strength")
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : a.name.localeCompare(b.name)))
+    .map((t) => ({ id: t.id, name: t.name, count: t.exercises.length }));
   const partner = athletes.find((a) => a.id !== athlete.id) ?? null;
   const target = basis
     ? { grams: basis.weightKg * athlete.protein_target_g_per_kg, basis: proteinBasisText(basis, athlete.protein_target_g_per_kg) }
@@ -73,7 +79,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
           </ul>
         )}
         <div style={{ borderTop: "1px solid var(--color-line)" }}>
-          <QuickLog athleteId={athlete.id} date={date} partnerName={partner?.name ?? null} />
+          <QuickLog athleteId={athlete.id} date={date} partnerName={partner?.name ?? null} strengthTemplates={strengthTemplates} />
         </div>
       </section>
 

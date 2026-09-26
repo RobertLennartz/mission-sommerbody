@@ -77,3 +77,54 @@ join public.plan_templates t on t.name = week.template
 where not exists (
   select 1 from public.week_template_items i where i.week_template_id = w.id
 );
+
+-- Robert's own training plans (26.09.2026). Sets and reps are defaults,
+-- editable in the app under Planung > Vorlagen.
+insert into public.exercises (name)
+select v.name
+from (values
+  ('Brustpresse'), ('Rudern'), ('Schrägbankdrücken'), ('Reverse Flys (Maschine)'),
+  ('Kabel-Lateral-Raise'), ('Langhantel-Bizeps-Curls'), ('Samurai-Extensions'), ('Schulter-Raise-Mix'),
+  ('Trizeps-Drücken'), ('Bizeps-Curls am Kabelzug'), ('Warm-up'), ('Wall-Sit'), ('Romanian Deadlift'),
+  ('Bulgarian Split Squat'), ('Beinbeugen'), ('Beinstrecken'), ('Abductor-Maschine')
+) as v (name)
+where not exists (
+  select 1 from public.exercises e where lower(btrim(e.name)) = lower(btrim(v.name))
+);
+
+insert into public.plan_templates (name, category, default_duration_min)
+values ('Oberkörper 1', 'strength', 60), ('Oberkörper 2', 'strength', 60), ('Unterkörper', 'strength', 60)
+on conflict (name) do nothing;
+
+with plan (template, position, exercise, sets, reps) as (
+  values
+    ('Oberkörper 1', 1, 'Brustpresse', 3, '8-12'),
+    ('Oberkörper 1', 2, 'Klimmzüge', 3, '8-12'),
+    ('Oberkörper 1', 3, 'Rudern', 3, '8-12'),
+    ('Oberkörper 1', 4, 'Schrägbankdrücken', 3, '8-12'),
+    ('Oberkörper 1', 5, 'Reverse Flys (Maschine)', 3, '8-12'),
+    ('Oberkörper 1', 6, 'Face Pulls', 3, '8-12'),
+    ('Oberkörper 1', 7, 'Schulterdrücken', 3, '8-12'),
+    ('Oberkörper 2', 1, 'Kabel-Lateral-Raise', 3, '8-12'),
+    ('Oberkörper 2', 2, 'Langhantel-Bizeps-Curls', 3, '8-12'),
+    ('Oberkörper 2', 3, 'Samurai-Extensions', 3, '8-12'),
+    ('Oberkörper 2', 4, 'Schulter-Raise-Mix', 3, '8-12'),
+    ('Oberkörper 2', 5, 'Trizeps-Drücken', 3, '8-12'),
+    ('Oberkörper 2', 6, 'Bizeps-Curls am Kabelzug', 3, '8-12'),
+    ('Unterkörper', 1, 'Warm-up', 1, '5-10 min'),
+    ('Unterkörper', 2, 'Wall-Sit', 3, '30-60 s'),
+    ('Unterkörper', 3, 'Romanian Deadlift', 3, '8-12'),
+    ('Unterkörper', 4, 'Bulgarian Split Squat', 3, '8-12'),
+    ('Unterkörper', 5, 'Wadenheben', 3, '8-12'),
+    ('Unterkörper', 6, 'Beinbeugen', 3, '8-12'),
+    ('Unterkörper', 7, 'Beinstrecken', 3, '8-12'),
+    ('Unterkörper', 8, 'Abductor-Maschine', 3, '8-12')
+)
+insert into public.plan_template_exercises (template_id, position, exercise_id, target_sets, target_reps)
+select t.id, p.position, e.id, p.sets, p.reps
+from plan p
+join public.plan_templates t on t.name = p.template
+join public.exercises e on lower(e.name) = lower(p.exercise)
+where not exists (
+  select 1 from public.plan_template_exercises x where x.template_id = t.id
+);

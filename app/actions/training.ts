@@ -96,6 +96,21 @@ export async function quickLogSession(athleteId: string, date: string, category:
   redirect(`/einheit/${created[0]}`);
 }
 
+/** Quick log of a strength session from a template: all exercises prefilled, status done. */
+export async function quickLogTemplate(athleteId: string, date: string, templateId: string, both: boolean): Promise<void> {
+  await guard();
+  const athlete = await requireAthlete(athleteId);
+  const day = requireDate(date);
+  const template = requireUuid(templateId, "Vorlage");
+  const athletes = unwrap(await db().from("athletes").select("id").order("sort_order"), "Personen laden");
+  const ids = both ? [athlete.id, ...athletes.map((a) => a.id).filter((id) => id !== athlete.id)] : [athlete.id];
+  const created = unwrap(
+    await db().rpc("create_sessions", { p_athletes: ids, p_date: day, p_status: "done", p_template: template, p_category: null, p_title: null }),
+    "Einheit anlegen",
+  ) as string[];
+  redirect(`/einheit/${created[0]}`);
+}
+
 export type FillState = { error?: string; message?: string };
 
 export async function fillWeek(_prev: FillState, formData: FormData): Promise<FillState> {
