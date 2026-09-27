@@ -18,7 +18,8 @@ function pace(s: SessionRow): string | null {
   return p === null ? null : formatPace(p);
 }
 import { BodyCard, NotesCard, StepsCard } from "./DayForms";
-import { MealsCard, proteinBasisText } from "./MealsCard";
+import { MealsCard } from "./MealsCard";
+import { proteinBasisText } from "@/lib/protein";
 import { QuickLog } from "./QuickLog";
 import { getAthletes } from "@/lib/athletes";
 

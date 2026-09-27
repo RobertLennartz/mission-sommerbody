@@ -6,7 +6,6 @@ import { AutosaveText } from "@/components/form/AutosaveText";
 import { Progress } from "@/components/Progress";
 import { addMeal, deleteMeal, saveDailyField, saveMealField } from "@/app/actions/day";
 import { MEAL_LABEL, MEAL_TYPES } from "@/lib/categories";
-import { formatDate } from "@/lib/dates";
 import { FIELDS, TEXT_MAX } from "@/lib/fields";
 import { formatDecimal, formatInt, toInputValue } from "@/lib/numbers";
 import type { MealRow, MealType } from "@/lib/supabase/database.types";
@@ -205,9 +204,4 @@ function MealTypeSelect({ meal }: { meal: MealRow }) {
       {error ? <span className="t-label text-bad">{error}</span> : null}
     </label>
   );
-}
-
-export function proteinBasisText(basis: { weightKg: number; source: "checkup" | "morning"; date: string }, factor: number): string {
-  const src = basis.source === "checkup" ? "Checkup" : "Morgengewicht";
-  return `Basis: ${formatDecimal(basis.weightKg, 1)} kg (${src} vom ${formatDate(basis.date)}) × ${formatDecimal(factor, 1)} g/kg`;
 }
