@@ -10,7 +10,7 @@ import { daysLabel } from "@/lib/numbers";
 import { averageOfPresent, nutritionByDate, proteinTargetFor } from "@/lib/stats";
 import { weekFromParam } from "@/lib/week-param";
 import { energyFromRange } from "@/lib/data/energy";
-import { KCAL_PER_KG_FAT, totalSaved } from "@/lib/energy";
+import { fatEquivalentLabel, totalSaved } from "@/lib/energy";
 import { datesBetween } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Ernährung" };
@@ -77,7 +77,7 @@ export default async function NutritionPage({ searchParams }: PageProps<"/ernaeh
           {
             label: "Eingespart Mission",
             value: savedMission.days ? `${formatInt(Math.round(savedMission.kcal))} kcal` : "offen",
-            sub: savedMission.days ? `≈ ${formatDecimal(savedMission.kcal / KCAL_PER_KG_FAT, 1)} kg Fett, ${daysLabel(savedMission.days)}` : "ab 12.10.",
+            sub: savedMission.days ? `${fatEquivalentLabel(savedMission.kcal)}, ${daysLabel(savedMission.days)}` : "ab 12.10.",
           },
         ].map((c, i) => (
           <div key={i} className="card flex flex-col gap-1 p-3">

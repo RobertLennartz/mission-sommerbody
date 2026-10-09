@@ -10,7 +10,7 @@ import { formatDecimal, formatInt, formatSigned } from "@/lib/numbers";
 import { daysLabel } from "@/lib/numbers";
 import { averageOfPresent, nutritionByDate, proteinTargetFor } from "@/lib/stats";
 import { energyFromRange } from "@/lib/data/energy";
-import { KCAL_PER_KG_FAT, totalSaved } from "@/lib/energy";
+import { fatEquivalentLabel, totalSaved } from "@/lib/energy";
 import { datesBetween } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Übersicht" };
@@ -28,8 +28,12 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: strin
 export default async function OverviewPage() {
   await requireSelectedAthlete();
   const athletes = await getAthletes();
-  const data = await loadRange(athletes.map((a) => a.id), MISSION_START, MISSION_END);
   const today = berlinToday();
+  // Mission range for the charts; everything up to today for the overall deficit.
+  const [data, allData] = await Promise.all([
+    loadRange(athletes.map((a) => a.id), MISSION_START, MISSION_END),
+    loadRange(athletes.map((a) => a.id), "2000-01-01", today),
+  ]);
   const status = missionStatus(today);
   const lastDay = today < MISSION_END ? today : MISSION_END;
 
@@ -57,6 +61,18 @@ export default async function OverviewPage() {
     }).length;
     const saved =
       lastDay >= MISSION_START ? totalSaved(energyFromRange(a, data, datesBetween(MISSION_START, lastDay))) : { kcal: 0, days: 0 };
+    // Overall: every day up to today with recorded calories, also before the mission.
+    const kcalDates = [
+      ...new Set([
+        ...allData.logs.filter((l) => l.athlete_id === a.id && l.kcal_total !== null).map((l) => l.date),
+        ...allData.meals.filter((m) => m.athlete_id === a.id && m.kcal !== null).map((m) => m.date),
+      ]),
+    ]
+      .filter((d) => d <= today)
+      .sort();
+    const overallDays = energyFromRange(a, allData, kcalDates);
+    const savedAll = totalSaved(overallDays);
+    const overallMissing = overallDays.find((d) => d.energy === null)?.missing ?? [];
     const km = sessions.filter((s) => s.category !== "strength").reduce((sum, s) => sum + (s.distance_km ?? 0), 0);
     return {
       athlete: a,
@@ -73,6 +89,10 @@ export default async function OverviewPage() {
       proteinDays: proteinDays.length,
       km,
       saved,
+      savedAll,
+      kcalDays: kcalDates.length,
+      firstKcalDay: kcalDates[0] ?? null,
+      overallMissing,
     };
   });
 
@@ -104,7 +124,39 @@ export default async function OverviewPage() {
               <div className="card-head">
                 <h2 className="t-strong text-[18px] uppercase">{p.athlete.name}</h2>
               </div>
-              <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3">
+              <div className="px-4 pt-4">
+                <div className="flex flex-col gap-1 p-4" style={{ border: "1.5px solid var(--color-ink)", background: "var(--color-acc-tint)" }}>
+                  <span className="t-label">Kaloriendefizit gesamt</span>
+                  {p.savedAll.days ? (
+                    <>
+                      <span className="t-num text-[30px] font-medium leading-tight" style={{ color: p.savedAll.kcal >= 0 ? "var(--color-good)" : "var(--color-bad)" }}>
+                        {formatInt(Math.round(Math.abs(p.savedAll.kcal)))} kcal {p.savedAll.kcal >= 0 ? "eingespart" : "Überschuss"}
+                      </span>
+                      <span className="t-label t-label-sm text-mute">
+                        {p.savedAll.kcal >= 0 ? `${fatEquivalentLabel(p.savedAll.kcal)} · ` : ""}
+                        {daysLabel(p.savedAll.days)} mit kcal seit {p.firstKcalDay ? formatDayShort(p.firstKcalDay) : ""}
+                        {p.saved.days ? ` · davon seit 12.10.: ${formatInt(Math.round(p.saved.kcal))} kcal` : ""} · Schätzung
+                      </span>
+                      {p.savedAll.days < p.kcalDays ? (
+                        <span className="t-label t-label-sm text-mute">
+                          {daysLabel(p.kcalDays - p.savedAll.days)} ohne Schätzung, es fehlt: {p.overallMissing.join(", ")}
+                        </span>
+                      ) : null}
+                    </>
+                  ) : (
+                    <>
+                      <span className="t-num text-[22px] font-medium">offen</span>
+                      <span className="text-[13px] text-mute">
+                        {p.kcalDays === 0
+                          ? "Noch keine Kalorien erfasst. Tageswert oder Mahlzeiten mit kcal eintragen."
+                          : `Kalorien sind da, für die Schätzung fehlt: ${p.overallMissing.join(", ")}.`}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <span className="t-label px-4 pt-4 text-mute">Mission ab 12.10.</span>
+              <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-2 sm:grid-cols-3">
                 <Tile
                   label="Gewicht"
                   value={last ? `${formatDecimal(last.value, 1, true)} kg` : "offen"}
@@ -115,11 +167,6 @@ export default async function OverviewPage() {
                 <Tile label="Schritte Ø" value={p.stepsAvg.average === null ? "offen" : formatInt(Math.round(p.stepsAvg.average))} sub={`${daysLabel(p.stepsAvg.days)} erfasst`} />
                 <Tile label="Protein Ø" value={p.proteinAvg.average === null ? "offen" : `${formatDecimal(p.proteinAvg.average, 0)} g`} sub={`${daysLabel(p.proteinDays)} erfasst`} />
                 <Tile label="Proteinziel" value={`${daysLabel(p.reached)}`} sub="erreicht" />
-                <Tile
-                  label="Eingespart"
-                  value={p.saved.days ? `${formatInt(Math.round(p.saved.kcal))} kcal` : "offen"}
-                  sub={p.saved.days ? `≈ ${formatDecimal(p.saved.kcal / KCAL_PER_KG_FAT, 1, true)} kg Fett, ${daysLabel(p.saved.days)} (Schätzung)` : "sobald kcal erfasst sind"}
-                />
               </div>
 
               <div className="flex flex-col gap-1 px-4 pb-4">

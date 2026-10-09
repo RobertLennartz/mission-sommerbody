@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { KCAL_PER_KG_FAT, stepsKcal } from "@/lib/energy";
-import { formatDecimal, formatInt } from "@/lib/numbers";
+import { fatEquivalentLabel, stepsKcal } from "@/lib/energy";
+import { formatInt } from "@/lib/numbers";
 
 export const KCAL_EVENT = "ms-kcal";
 export const STEPS_EVENT = "ms-steps";
@@ -67,7 +67,7 @@ export function EnergyCard({
           </span>
         </div>
         {balance !== null && balance > 0 ? (
-          <p className="t-label t-label-sm text-mute">entspricht etwa {formatDecimal((balance / KCAL_PER_KG_FAT) * 1000, 0)} g Fett (Faustregel 7.700 kcal pro kg)</p>
+          <p className="t-label t-label-sm text-mute">entspricht {fatEquivalentLabel(balance)} (Faustregel 7.700 kcal pro kg)</p>
         ) : null}
         <dl className="t-num grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-[14px]">
           <dt className="text-mute">Grundumsatz</dt>

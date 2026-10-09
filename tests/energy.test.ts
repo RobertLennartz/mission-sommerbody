@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bmrMifflin, dayEnergy, energyPerDay, sessionEnergy, sessionKind, stepsKcal, totalSaved } from "@/lib/energy";
+import { bmrMifflin, dayEnergy, energyPerDay, fatEquivalentLabel, sessionEnergy, sessionKind, stepsKcal, totalSaved } from "@/lib/energy";
 
 describe("Mifflin-St Jeor", () => {
   it("matches the standard worked example (30 y, 80 kg, 180 cm, man)", () => {
@@ -122,5 +122,12 @@ describe("energy per day from data", () => {
     });
     expect(d.energy).toBeNull();
     expect(d.missing).toEqual(["Gewicht", "Größe", "Geburtsjahr", "Formel Männer/Frauen (Einstellungen)"]);
+  });
+});
+
+describe("fat equivalent", () => {
+  it("shows grams below a kilogram and kilograms above", () => {
+    expect(fatEquivalentLabel(90)).toBe("≈ 12 g Fett");
+    expect(fatEquivalentLabel(10780)).toBe("≈ 1,4 kg Fett");
   });
 });

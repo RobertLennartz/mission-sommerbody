@@ -207,3 +207,10 @@ export function totalSaved(days: EnergyDay[]): { kcal: number; days: number } {
   const counted = days.filter((d) => d.energy?.balance != null);
   return { kcal: counted.reduce((s, d) => s + d.energy!.balance!, 0), days: counted.length };
 }
+
+/** "≈ 12 g Fett" below one kilogram, "≈ 1,4 kg Fett" above (rule of thumb 7,700 kcal per kg). */
+export function fatEquivalentLabel(kcal: number): string {
+  const kg = kcal / KCAL_PER_KG_FAT;
+  if (kg < 1) return `≈ ${Math.round(kg * 1000).toLocaleString("de-DE")} g Fett`;
+  return `≈ ${kg.toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg Fett`;
+}
