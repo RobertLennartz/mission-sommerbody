@@ -3,7 +3,6 @@
 import { AutosaveNumber } from "@/components/form/AutosaveNumber";
 import { SaveStatusText } from "@/components/form/SaveStatusText";
 import { useAutosave } from "@/components/form/useAutosave";
-import { FORMULA_LABEL } from "@/lib/bodyfat";
 import { saveAthleteField } from "@/app/actions/settings";
 import { FIELDS } from "@/lib/fields";
 import { toInputValue } from "@/lib/numbers";
@@ -41,11 +40,11 @@ function FormulaSelect({ athleteId, initial }: { athleteId: string; initial: str
   });
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="t-label">Körperfettformel</span>
+      <span className="t-label">Formeln für (Körperfett und Grundumsatz)</span>
       <select className="field" value={auto.value} onChange={(e) => auto.change(e.target.value)}>
         <option value="">Bitte wählen</option>
-        <option value="jp7_male">{FORMULA_LABEL.jp7_male}</option>
-        <option value="jp7_female">{FORMULA_LABEL.jp7_female}</option>
+        <option value="jp7_male">Männer</option>
+        <option value="jp7_female">Frauen</option>
       </select>
       <SaveStatusText status={auto.status} savedAt={auto.savedAt} error={auto.error} />
     </label>

@@ -10,6 +10,10 @@ import { getExercises, getSession, lastPerformances, type LastPerformance } from
 import { formatDayLong, formatDayShort } from "@/lib/dates";
 import { formatDecimal, joinNames } from "@/lib/numbers";
 import { pairPartners } from "@/lib/data/day";
+import { loadRange } from "@/lib/data/range";
+import { weightOn } from "@/lib/data/energy";
+import { sessionEnergy } from "@/lib/energy";
+import { formatInt } from "@/lib/numbers";
 import { AddExerciseForm, ExerciseBlock, RpeButtons, SaveAsTemplateForm, SessionBasics, StatusButtons, TrainingNumbers } from "./SessionForms";
 
 export const metadata: Metadata = { title: "Einheit" };
@@ -41,6 +45,10 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
     partnerName = ids.length ? joinNames(ids.map((id) => athletes.find((a) => a.id === id)?.name ?? "")) : null;
   }
 
+  const range = athlete ? await loadRange([athlete.id], session.date, session.date) : null;
+  const weight = athlete && range ? weightOn(athlete, range, session.date) : null;
+  const energy = weight !== null && session.category !== "recovery" ? sessionEnergy(session, weight) : null;
+
   const [last, catalog] = await Promise.all([
     session.category === "strength"
       ? lastPerformances(session.athlete_id, exercises.map((e) => e.exercise_id), { date: session.date, slot: session.slot, sessionId: session.id })
@@ -67,6 +75,20 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
           <DeleteSessionButton id={session.id} title={session.title} partnerName={partnerName} redirectTo={`/heute?datum=${session.date}`} />
         </div>
       </div>
+
+      {session.category !== "recovery" ? (
+        <p className="t-num px-3 py-2 text-[13px]" style={{ background: "var(--color-paper)" }}>
+          {energy ? (
+            <>
+              Verbrauch geschätzt <strong>≈ {formatInt(Math.round(energy.grossKcal / 10) * 10)} kcal</strong>, davon ≈{" "}
+              {formatInt(Math.round(energy.netKcal / 10) * 10)} über dem Grundumsatz · {energy.basis}, {formatInt(Math.round(energy.minutes))} min
+              {energy.assumedDuration ? " (Dauer angenommen, unten eintragen)" : ""}
+            </>
+          ) : (
+            "Für eine Verbrauchsschätzung fehlt ein Gewicht (Morgengewicht oder Checkup)."
+          )}
+        </p>
+      ) : null}
 
       {session.category === "strength" ? (
         <section className="card">

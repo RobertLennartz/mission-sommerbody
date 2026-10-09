@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { STEPS_EVENT } from "./EnergyCard";
 import { AutosaveNumber } from "@/components/form/AutosaveNumber";
 import { AutosaveText } from "@/components/form/AutosaveText";
 import { SaveStatusText } from "@/components/form/SaveStatusText";
@@ -14,6 +15,9 @@ type Props = { athleteId: string; date: string };
 
 export function StepsCard({ athleteId, date, initial, target }: Props & { initial: number | null; target: number }) {
   const [steps, setSteps] = useState<number | null>(initial);
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(STEPS_EVENT, { detail: steps }));
+  }, [steps]);
   return (
     <section className="card">
       <div className="card-head flex items-baseline justify-between">

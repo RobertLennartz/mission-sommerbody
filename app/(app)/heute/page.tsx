@@ -22,6 +22,11 @@ import { BodyCard, NotesCard, StepsCard } from "./DayForms";
 import { MealsCard } from "./MealsCard";
 import { proteinBasisText } from "@/lib/protein";
 import { QuickLog } from "./QuickLog";
+import { EnergyCard } from "./EnergyCard";
+import { loadRange } from "@/lib/data/range";
+import { energyFromRange, weightOn } from "@/lib/data/energy";
+import { sessionEnergy, sessionKind } from "@/lib/energy";
+import { formatInt } from "@/lib/numbers";
 import { getAthletes } from "@/lib/athletes";
 
 export const metadata: Metadata = { title: "Heute" };
@@ -49,6 +54,15 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
   const target = basis
     ? { grams: basis.weightKg * athlete.protein_target_g_per_kg, basis: proteinBasisText(basis, athlete.protein_target_g_per_kg) }
     : null;
+  const range = await loadRange([athlete.id], date, date);
+  const [energyDay] = energyFromRange(athlete, range, [date]);
+  const weight = weightOn(athlete, range, date);
+  const sessionKcal = (sess: (typeof day.sessions)[number]) =>
+    weight === null || sess.category === "recovery" ? null : sessionEnergy(sess, weight).grossKcal;
+  const runKm = day.sessions
+    .filter((x) => x.status === "done" && sessionKind(x) === "running")
+    .reduce((sum, x) => sum + (x.distance_km ?? 0), 0);
+
   // Remount the forms when person or day changes, so no field shows stale values.
   const k = `${athlete.id}:${date}`;
 
@@ -81,6 +95,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
                       {s.distance_km ? ` · ${formatDecimal(s.distance_km, 2)} km` : ""}
                       {pace(s) ? ` · ${pace(s)}` : ""}
                       {partnerNames(s.pair_id) ? ` · mit ${partnerNames(s.pair_id)}` : ""}
+                      {sessionKcal(s) !== null ? ` · ≈ ${formatInt(Math.round(sessionKcal(s)! / 10) * 10)} kcal` : ""}
                     </span>
                   </span>
                   <StatusPill status={s.status} />
@@ -97,6 +112,34 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
 
       <StepsCard key={`steps:${k}`} athleteId={athlete.id} date={date} initial={day.log?.steps ?? null} target={athlete.steps_target} />
       <MealsCard key={`meals:${k}:${day.meals.map((m) => m.id).join(",")}`} athleteId={athlete.id} date={date} meals={day.meals} target={target} proteinTotal={day.log?.protein_total_g ?? null} kcalTotal={day.log?.kcal_total ?? null} />
+      {energyDay.energy ? (
+        <EnergyCard
+          key={`energy:${k}`}
+          bmr={energyDay.energy.bmr}
+          digestion={energyDay.energy.digestion}
+          training={energyDay.energy.training}
+          trainingCount={day.sessions.filter((x) => x.status === "done" && x.category !== "recovery").length}
+          weightKg={weight!}
+          heightCm={athlete.height_cm}
+          runKm={runKm}
+          initialSteps={day.log?.steps ?? null}
+          initialIntake={energyDay.energy.intake}
+        />
+      ) : (
+        <section className="card">
+          <div className="card-head">
+            <h2 className="t-label t-label-lg">Energiebilanz</h2>
+          </div>
+          <p className="p-4 text-[14px] text-mute">
+            Für die Schätzung fehlt noch: {energyDay.missing.join(", ")}.{" "}
+            {energyDay.missing.some((m) => m !== "Gewicht") ? (
+              <Link href="/einstellungen" className="underline">Einstellungen</Link>
+            ) : (
+              "Morgengewicht unten eintragen."
+            )}
+          </p>
+        </section>
+      )}
       <BodyCard
         key={`body:${k}`}
         athleteId={athlete.id}

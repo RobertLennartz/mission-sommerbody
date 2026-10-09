@@ -3,12 +3,15 @@ import Link from "next/link";
 import { WeekNav } from "@/components/WeekNav";
 import { requireSelectedAthlete } from "@/lib/athletes";
 import { loadRange } from "@/lib/data/range";
-import { addDays, formatDayShort, weekDates } from "@/lib/dates";
+import { addDays, berlinToday, formatDayShort, weekDates } from "@/lib/dates";
 import { MISSION_END, MISSION_START, isInMission } from "@/lib/mission";
 import { formatDecimal, formatInt } from "@/lib/numbers";
 import { daysLabel } from "@/lib/numbers";
 import { averageOfPresent, nutritionByDate, proteinTargetFor } from "@/lib/stats";
 import { weekFromParam } from "@/lib/week-param";
+import { energyFromRange } from "@/lib/data/energy";
+import { KCAL_PER_KG_FAT, totalSaved } from "@/lib/energy";
+import { datesBetween } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Ernährung" };
 
@@ -40,6 +43,11 @@ export default async function NutritionPage({ searchParams }: PageProps<"/ernaeh
   const weekAvg = averageOfPresent(days.map((x) => x.protein));
   const reached = days.filter((x) => x.protein !== null && x.target !== null && x.protein >= x.target).length;
 
+  const weekEnergy = energyFromRange(athlete, week, weekDates(monday));
+  const energyOf = new Map(weekEnergy.map((e) => [e.date, e]));
+  const savedWeek = totalSaved(weekEnergy);
+  const missionEnd = berlinToday() < MISSION_END ? berlinToday() : MISSION_END;
+  const savedMission = missionEnd >= MISSION_START ? totalSaved(energyFromRange(athlete, mission, datesBetween(MISSION_START, missionEnd))) : { kcal: 0, days: 0 };
   const missionNutrition = [...nutritionByDate(mission.logs, mission.meals).entries()].filter(([, n]) => n.protein !== null);
   const missionAvg = averageOfPresent(missionNutrition.map(([, n]) => n.protein));
   const missionReached = missionNutrition.filter(([d, n]) => {
@@ -61,6 +69,16 @@ export default async function NutritionPage({ searchParams }: PageProps<"/ernaeh
           { label: "Ziel erreicht", value: `${reached} von ${days.filter((x) => isInMission(x.d)).length}`, sub: "Tage dieser Woche" },
           { label: "Protein Ø Mission", value: missionAvg.average === null ? "keine" : `${formatDecimal(missionAvg.average, 0)} g`, sub: `${daysLabel(missionAvg.days)} erfasst` },
           { label: "Ziel erreicht", value: `${daysLabel(missionReached)}`, sub: "seit Missionsstart" },
+          {
+            label: "Eingespart Woche",
+            value: savedWeek.days ? `${formatInt(Math.round(savedWeek.kcal))} kcal` : "offen",
+            sub: `geschätzt, ${daysLabel(savedWeek.days)} mit kcal`,
+          },
+          {
+            label: "Eingespart Mission",
+            value: savedMission.days ? `${formatInt(Math.round(savedMission.kcal))} kcal` : "offen",
+            sub: savedMission.days ? `≈ ${formatDecimal(savedMission.kcal / KCAL_PER_KG_FAT, 1)} kg Fett, ${daysLabel(savedMission.days)}` : "ab 12.10.",
+          },
         ].map((c, i) => (
           <div key={i} className="card flex flex-col gap-1 p-3">
             <span className="t-label text-mute">{c.label}</span>
@@ -78,6 +96,7 @@ export default async function NutritionPage({ searchParams }: PageProps<"/ernaeh
               <th className="px-3 py-2 text-right font-medium">Protein</th>
               <th className="px-3 py-2 text-right font-medium">Ziel</th>
               <th className="hidden px-3 py-2 text-right font-medium sm:table-cell">kcal</th>
+              <th className="px-3 py-2 text-right font-medium">Bilanz</th>
               <th className="px-3 py-2 text-right font-medium">Mahlz.</th>
             </tr>
           </thead>
@@ -101,6 +120,16 @@ export default async function NutritionPage({ searchParams }: PageProps<"/ernaeh
                     {x.kcal === null ? "" : formatInt(x.kcal)}
                     {x.kcalFromTotal ? <span className="t-label t-label-sm block text-mute">Tageswert</span> : null}
                   </td>
+                  <td className="t-num px-3 py-2.5 text-right text-[14px]">
+                    {energyOf.get(x.d)?.energy?.balance != null ? (
+                      <span style={{ color: energyOf.get(x.d)!.energy!.balance! >= 0 ? "var(--color-good)" : "var(--color-bad)" }}>
+                        {energyOf.get(x.d)!.energy!.balance! >= 0 ? "-" : "+"}
+                        {formatInt(Math.round(Math.abs(energyOf.get(x.d)!.energy!.balance!)))}
+                      </span>
+                    ) : (
+                      ""
+                    )}
+                  </td>
                   <td className="t-num px-3 py-2.5 text-right text-[14px]">{x.meals}</td>
                 </tr>
               );
@@ -111,6 +140,8 @@ export default async function NutritionPage({ searchParams }: PageProps<"/ernaeh
       <p className="text-[13px] text-mute">
         Ziel = Gewicht aus dem letzten Checkup (vorher letztes Morgengewicht) × {formatDecimal(athlete.protein_target_g_per_kg, 1)} g/kg.
         Pro Tag zählt der eingetragene Gesamtwert, sonst die Summe der Mahlzeiten. Durchschnitte zählen nur Tage mit Eintrag.
+        Bilanz = geschätzter Verbrauch (Grundumsatz nach Mifflin-St Jeor, +10 % Verdauung, Schritte, Training) minus gegessene
+        kcal; Minus heißt eingespart.
       </p>
     </div>
   );

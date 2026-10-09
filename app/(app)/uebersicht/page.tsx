@@ -9,6 +9,9 @@ import { MISSION_DAYS, MISSION_END, MISSION_START, missionStatus, missionWeeks }
 import { formatDecimal, formatInt, formatSigned } from "@/lib/numbers";
 import { daysLabel } from "@/lib/numbers";
 import { averageOfPresent, nutritionByDate, proteinTargetFor } from "@/lib/stats";
+import { energyFromRange } from "@/lib/data/energy";
+import { KCAL_PER_KG_FAT, totalSaved } from "@/lib/energy";
+import { datesBetween } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Übersicht" };
 
@@ -52,6 +55,8 @@ export default async function OverviewPage() {
       const t = proteinTargetFor(d, data.checkupWeights.get(a.id) ?? [], data.morningWeights.get(a.id) ?? [], a.protein_target_g_per_kg);
       return t !== null && p >= t;
     }).length;
+    const saved =
+      lastDay >= MISSION_START ? totalSaved(energyFromRange(a, data, datesBetween(MISSION_START, lastDay))) : { kcal: 0, days: 0 };
     const km = sessions.filter((s) => s.category !== "strength").reduce((sum, s) => sum + (s.distance_km ?? 0), 0);
     return {
       athlete: a,
@@ -67,6 +72,7 @@ export default async function OverviewPage() {
       reached,
       proteinDays: proteinDays.length,
       km,
+      saved,
     };
   });
 
@@ -109,6 +115,11 @@ export default async function OverviewPage() {
                 <Tile label="Schritte Ø" value={p.stepsAvg.average === null ? "offen" : formatInt(Math.round(p.stepsAvg.average))} sub={`${daysLabel(p.stepsAvg.days)} erfasst`} />
                 <Tile label="Protein Ø" value={p.proteinAvg.average === null ? "offen" : `${formatDecimal(p.proteinAvg.average, 0)} g`} sub={`${daysLabel(p.proteinDays)} erfasst`} />
                 <Tile label="Proteinziel" value={`${daysLabel(p.reached)}`} sub="erreicht" />
+                <Tile
+                  label="Eingespart"
+                  value={p.saved.days ? `${formatInt(Math.round(p.saved.kcal))} kcal` : "offen"}
+                  sub={p.saved.days ? `≈ ${formatDecimal(p.saved.kcal / KCAL_PER_KG_FAT, 1, true)} kg Fett, ${daysLabel(p.saved.days)} (Schätzung)` : "sobald kcal erfasst sind"}
+                />
               </div>
 
               <div className="flex flex-col gap-1 px-4 pb-4">

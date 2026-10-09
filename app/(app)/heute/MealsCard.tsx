@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { KCAL_EVENT } from "./EnergyCard";
 import { AutosaveNumber } from "@/components/form/AutosaveNumber";
 import { AutosaveText } from "@/components/form/AutosaveText";
 import { Progress } from "@/components/Progress";
@@ -38,6 +39,9 @@ export function MealsCard({
   const total = dayProtein ?? mealSum;
   const mealKcal = meals.some((m) => m.kcal !== null) ? meals.reduce((sum, m) => sum + (m.kcal ?? 0), 0) : null;
   const kcal = dayKcal ?? mealKcal;
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(KCAL_EVENT, { detail: kcal }));
+  }, [kcal]);
 
   return (
     <section className="card">
