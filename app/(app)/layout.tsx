@@ -6,7 +6,7 @@ import { logout } from "@/app/login/actions";
 import { getAthletes, getSelectedAthlete } from "@/lib/athletes";
 import { requireSession } from "@/lib/auth";
 import { berlinToday } from "@/lib/dates";
-import { missionLabel } from "@/lib/mission";
+import { MISSION_RANGE_LABEL, missionLabel } from "@/lib/mission";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   await requireSession();
@@ -26,7 +26,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       </main>
       <footer className="hidden sm:block" style={{ borderTop: "1px solid var(--color-line)" }}>
         <div className="mx-auto flex max-w-[1180px] items-center gap-4 px-6 py-5">
-          <span className="t-label text-mute">Mission Sommerbody · 12.10. bis 13.11.2026</span>
+          <span className="t-label text-mute">Mission Sommerbody · {MISSION_RANGE_LABEL}</span>
           <form action={logout} className="ml-auto">
             <button type="submit" className="t-label text-mute underline hover:text-ink">
               Abmelden

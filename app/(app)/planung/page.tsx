@@ -7,7 +7,7 @@ import { getAthletes, requireSelectedAthlete } from "@/lib/athletes";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { getTemplates, getWeekTemplates, listSessions } from "@/lib/data/training";
 import { addDays, formatDayLong, weekDates } from "@/lib/dates";
-import { isInMission } from "@/lib/mission";
+import { MISSION_RANGE_LABEL, isInMission } from "@/lib/mission";
 import { weekFromParam } from "@/lib/week-param";
 import { joinNames } from "@/lib/numbers";
 import { FillWeekForm, SessionControls } from "./PlanControls";
@@ -118,7 +118,7 @@ export default async function PlanningPage({ searchParams }: PageProps<"/planung
             />
           </section>
           <p className="text-[13px] leading-relaxed text-mute">
-            Füllen legt nur Tage innerhalb der Mission an (12.10. bis 13.11.). Danach lässt sich jede Einheit einzeln verschieben.
+            Füllen legt nur Tage innerhalb der Mission an ({MISSION_RANGE_LABEL}). Danach lässt sich jede Einheit einzeln verschieben.
             Bei gemeinsamen Einheiten fragt die App, ob beide gemeint sind.
           </p>
         </aside>

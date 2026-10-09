@@ -49,28 +49,30 @@ describe("date arithmetic", () => {
 });
 
 describe("mission", () => {
-  it("spans 33 days in KW 42 to KW 46", () => {
-    expect(MISSION_DAYS).toBe(33);
-    expect(missionWeeks().map(weekLabel)).toEqual(["KW 42", "KW 43", "KW 44", "KW 45", "KW 46"]);
+  it("spans 35 days from Sat 10.10. to Fri 13.11. in KW 41 to KW 46", () => {
+    expect(MISSION_DAYS).toBe(35);
+    expect(missionWeeks().map(weekLabel)).toEqual(["KW 41", "KW 42", "KW 43", "KW 44", "KW 45", "KW 46"]);
   });
 
   it("labels the countdown", () => {
-    expect(missionLabel("2026-09-26")).toBe("Start in 16 Tagen");
-    expect(missionLabel("2026-10-11")).toBe("Start morgen");
-    expect(missionLabel("2026-10-12")).toBe("Tag 1 von 33");
-    expect(missionLabel("2026-11-13")).toBe("Tag 33 von 33");
+    expect(missionLabel("2026-09-26")).toBe("Start in 14 Tagen");
+    expect(missionLabel("2026-10-09")).toBe("Start morgen");
+    expect(missionLabel("2026-10-10")).toBe("Tag 1 von 35");
+    expect(missionLabel("2026-11-13")).toBe("Tag 35 von 35");
     expect(missionLabel("2026-11-14")).toBe("Mission beendet");
   });
 
-  it("scales the weekly target in the short last week", () => {
+  it("scales the weekly target in the short first and last week", () => {
+    expect(missionDaysInWeek("2026-10-05")).toBe(2);
     expect(missionDaysInWeek("2026-10-12")).toBe(7);
     expect(missionDaysInWeek("2026-11-09")).toBe(5);
-    expect(weeklyTarget(3, "2026-10-12")).toBe(3);
-    expect(weeklyTarget(3, "2026-11-09")).toBe(2);
+    expect(weeklyTarget(5, "2026-10-05")).toBe(1);
+    expect(weeklyTarget(5, "2026-10-12")).toBe(5);
+    expect(weeklyTarget(5, "2026-11-09")).toBe(4);
   });
 
   it("clamps the default week to the mission", () => {
-    expect(defaultWeekStart("2026-09-26")).toBe("2026-10-12");
+    expect(defaultWeekStart("2026-09-26")).toBe("2026-10-05");
     expect(defaultWeekStart("2026-10-28")).toBe("2026-10-26");
     expect(defaultWeekStart("2026-12-01")).toBe("2026-11-09");
   });

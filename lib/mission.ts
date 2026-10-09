@@ -1,9 +1,19 @@
-import { addDays, diffDays, isoWeek, startOfIsoWeek, type IsoDate } from "@/lib/dates";
+import { addDays, diffDays, formatDate, isoWeek, startOfIsoWeek, type IsoDate } from "@/lib/dates";
 
-/** The mission period lives here and nowhere else. */
-export const MISSION_START: IsoDate = "2026-10-12";
+/**
+ * The mission period lives here and nowhere else. Start moved from 12.10. to
+ * Saturday 10.10.2026 on Robert's request (09.10.2026); end unchanged.
+ */
+export const MISSION_START: IsoDate = "2026-10-10";
 export const MISSION_END: IsoDate = "2026-11-13";
 export const MISSION_DAYS = diffDays(MISSION_START, MISSION_END) + 1;
+
+/** "10.10." */
+export const MISSION_START_SHORT = formatDate(MISSION_START).slice(0, 6);
+/** "13.11." */
+export const MISSION_END_SHORT = formatDate(MISSION_END).slice(0, 6);
+/** "10.10. bis 13.11.2026" */
+export const MISSION_RANGE_LABEL = `${MISSION_START_SHORT} bis ${formatDate(MISSION_END)}`;
 
 export type MissionStatus =
   | { phase: "before"; daysUntilStart: number }

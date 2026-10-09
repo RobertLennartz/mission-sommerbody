@@ -4,7 +4,7 @@ import { WeekNav } from "@/components/WeekNav";
 import { requireSelectedAthlete } from "@/lib/athletes";
 import { loadRange } from "@/lib/data/range";
 import { addDays, berlinToday, formatDayShort, weekDates } from "@/lib/dates";
-import { MISSION_END, MISSION_START, isInMission } from "@/lib/mission";
+import { MISSION_END, MISSION_START, MISSION_START_SHORT, isInMission } from "@/lib/mission";
 import { formatDecimal, formatInt } from "@/lib/numbers";
 import { daysLabel } from "@/lib/numbers";
 import { averageOfPresent, nutritionByDate, proteinTargetFor } from "@/lib/stats";
@@ -77,7 +77,7 @@ export default async function NutritionPage({ searchParams }: PageProps<"/ernaeh
           {
             label: "Eingespart Mission",
             value: savedMission.days ? `${formatInt(Math.round(savedMission.kcal))} kcal` : "offen",
-            sub: savedMission.days ? `${fatEquivalentLabel(savedMission.kcal)}, ${daysLabel(savedMission.days)}` : "ab 12.10.",
+            sub: savedMission.days ? `${fatEquivalentLabel(savedMission.kcal)}, ${daysLabel(savedMission.days)}` : `ab ${MISSION_START_SHORT}`,
           },
         ].map((c, i) => (
           <div key={i} className="card flex flex-col gap-1 p-3">

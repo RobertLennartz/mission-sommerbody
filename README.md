@@ -1,6 +1,6 @@
 # Mission Sommerbody
 
-Trainingsphase von Robert und Eddie, Mo 12.10.2026 bis Fr 13.11.2026: Checkups, Tageswerte, Ernährung und Training. Ein gemeinsames Passwort schützt die App, Konten gibt es keine.
+Trainingsphase von Robert, Eddie und Anny, Sa 10.10.2026 bis Fr 13.11.2026 (Zeitraum nur in `lib/mission.ts`): Checkups, Tageswerte, Ernährung und Training. Ein gemeinsames Passwort schützt die App, Konten gibt es keine.
 
 Plan und Entscheidungen: [`.planning/plan.md`](.planning/plan.md)
 

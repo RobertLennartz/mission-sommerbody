@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Roboto_Mono } from "next/font/google";
 import { APP_NAME } from "@/lib/brand";
+import { MISSION_RANGE_LABEL } from "@/lib/mission";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -19,7 +20,7 @@ const robotoMono = Roboto_Mono({
 
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
-  description: "Trainingsphase von Robert und Eddie, 12.10. bis 13.11.2026.",
+  description: `Trainingsphase von Robert, Eddie und Anny, ${MISSION_RANGE_LABEL}.`,
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, title: "Sommerbody", statusBarStyle: "black" },
 };

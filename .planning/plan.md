@@ -12,6 +12,7 @@ Stand: 26.09.2026. Status: **freigegeben und gebaut**. Änderungen nach der Frei
 - **Kraftvorlagen** sind nur noch Oberkörper 1, Oberkörper 2, Unterkörper (Roberts Pläne). Leere Sätze zeigen grau die Werte vom letzten Mal, "Wie letztes Mal" übernimmt sie. Aus jeder Einheit lässt sich eine Vorlage machen. Nur Start- und End-Checkup.
 - **Recovery** = Sauna, Eisbad, Massage zum Ankreuzen, ohne Zeit. "Rad" heißt Spinning.
 - Domain: https://sommerbody.boomlike.de (CNAME bei manitu).
+- **Start vorgezogen auf Sa, 10.10.2026** (Robert, 09.10.): Ende bleibt Fr, 13.11., die Challenge dauert damit 35 Tage (KW 41 bis 46). Frühere Einträge bleiben erhalten, Missionsauswertungen zählen ab 10.10. Das Datum steht nur noch in `lib/mission.ts`.
 - Deployment: Vercel-Projekt ist mit GitHub verbunden, jeder Push auf `main` geht live.
 
 ## Was ich von dir brauchte (vor dem Bau)

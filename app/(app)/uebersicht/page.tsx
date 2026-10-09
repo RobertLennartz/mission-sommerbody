@@ -5,7 +5,7 @@ import { getAthletes, requireSelectedAthlete } from "@/lib/athletes";
 import { CATEGORIES, CATEGORY_LABEL, countsAsTraining } from "@/lib/categories";
 import { loadRange } from "@/lib/data/range";
 import { addDays, berlinToday, formatDayShort, isoWeek } from "@/lib/dates";
-import { MISSION_DAYS, MISSION_END, MISSION_START, missionStatus, missionWeeks } from "@/lib/mission";
+import { MISSION_DAYS, MISSION_END, MISSION_RANGE_LABEL, MISSION_START, MISSION_START_SHORT, missionStatus, missionWeeks } from "@/lib/mission";
 import { formatDecimal, formatInt, formatSigned } from "@/lib/numbers";
 import { daysLabel } from "@/lib/numbers";
 import { averageOfPresent, nutritionByDate, proteinTargetFor } from "@/lib/stats";
@@ -105,7 +105,7 @@ export default async function OverviewPage() {
             <span className="t-label text-dead">{hero.small}</span>
           </div>
           <span className="t-num text-right text-[13px] text-dead">
-            12.10. bis 13.11.2026
+            {MISSION_RANGE_LABEL}
             <br />
             {status.phase === "running" ? `Tag ${status.day} von ${MISSION_DAYS}` : `${daysLabel(MISSION_DAYS)}`}
           </span>
@@ -135,7 +135,7 @@ export default async function OverviewPage() {
                       <span className="t-label t-label-sm text-mute">
                         {p.savedAll.kcal >= 0 ? `${fatEquivalentLabel(p.savedAll.kcal)} · ` : ""}
                         {daysLabel(p.savedAll.days)} mit kcal seit {p.firstKcalDay ? formatDayShort(p.firstKcalDay) : ""}
-                        {p.saved.days ? ` · davon seit 12.10.: ${formatInt(Math.round(p.saved.kcal))} kcal` : ""} · Schätzung
+                        {p.saved.days ? ` · davon seit ${MISSION_START_SHORT}: ${formatInt(Math.round(p.saved.kcal))} kcal` : ""} · Schätzung
                       </span>
                       {p.savedAll.days < p.kcalDays ? (
                         <span className="t-label t-label-sm text-mute">
@@ -155,7 +155,7 @@ export default async function OverviewPage() {
                   )}
                 </div>
               </div>
-              <span className="t-label px-4 pt-4 text-mute">Mission ab 12.10.</span>
+              <span className="t-label px-4 pt-4 text-mute">Mission ab {MISSION_START_SHORT}</span>
               <div className="grid grid-cols-2 gap-2 px-4 pb-4 pt-2 sm:grid-cols-3">
                 <Tile
                   label="Gewicht"

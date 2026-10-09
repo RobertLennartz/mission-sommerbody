@@ -3,6 +3,7 @@ import { openCheckup } from "@/app/actions/checkups";
 import { getAthletes, requireSelectedAthlete } from "@/lib/athletes";
 import { getCheckups, type CheckupDetail } from "@/lib/data/checkups";
 import { formatDate } from "@/lib/dates";
+import { MISSION_END_SHORT, MISSION_START_SHORT } from "@/lib/mission";
 import { CHECKUP_TYPES, CHECKUP_TYPE_LABEL, CIRCUMFERENCES } from "@/lib/measurements";
 import { formatDecimal, formatSigned } from "@/lib/numbers";
 
@@ -29,7 +30,7 @@ export default async function CheckupsPage() {
       <div>
         <h1 className="t-head text-[30px]">Checkups</h1>
         <p className="mt-1 text-[15px] text-mute">
-          Start am 12.10., Ende am 13.11. Körperfett nach Jackson/Pollock (7 Hautfalten).
+          Start am {MISSION_START_SHORT}, Ende am {MISSION_END_SHORT} Körperfett nach Jackson/Pollock (7 Hautfalten).
         </p>
       </div>
 
