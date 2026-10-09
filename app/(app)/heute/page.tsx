@@ -6,7 +6,8 @@ import { CategoryMark } from "@/components/SessionBadge";
 import { StatusPill } from "@/components/StatusPill";
 import { requireSelectedAthlete } from "@/lib/athletes";
 import { CATEGORY_LABEL } from "@/lib/categories";
-import { getDay, proteinBasis } from "@/lib/data/day";
+import { getDay, pairPartners, proteinBasis } from "@/lib/data/day";
+import { joinNames } from "@/lib/numbers";
 import { getTemplates } from "@/lib/data/training";
 import { berlinToday, isIsoDate } from "@/lib/dates";
 import { formatDecimal } from "@/lib/numbers";
@@ -36,7 +37,15 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
     .filter((t) => t.category === "strength")
     .sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : a.name.localeCompare(b.name)))
     .map((t) => ({ id: t.id, name: t.name, count: t.exercises.length }));
-  const partner = athletes.find((a) => a.id !== athlete.id) ?? null;
+  const others = athletes.filter((a) => a.id !== athlete.id);
+  const partners = await pairPartners(
+    day.sessions.map((s) => s.pair_id).filter((id): id is string => id !== null),
+    athlete.id,
+  );
+  const partnerNames = (pairId: string | null) =>
+    pairId && partners.get(pairId)?.length
+      ? joinNames(partners.get(pairId)!.map((id) => athletes.find((a) => a.id === id)?.name ?? ""))
+      : null;
   const target = basis
     ? { grams: basis.weightKg * athlete.protein_target_g_per_kg, basis: proteinBasisText(basis, athlete.protein_target_g_per_kg) }
     : null;
@@ -71,18 +80,18 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
                       {s.duration_sec ? ` · ${durationLabel(s.duration_sec)}` : ""}
                       {s.distance_km ? ` · ${formatDecimal(s.distance_km, 2)} km` : ""}
                       {pace(s) ? ` · ${pace(s)}` : ""}
-                      {s.pair_id ? " · gemeinsam" : ""}
+                      {partnerNames(s.pair_id) ? ` · mit ${partnerNames(s.pair_id)}` : ""}
                     </span>
                   </span>
                   <StatusPill status={s.status} />
                 </Link>
-                <DeleteSessionButton id={s.id} title={s.title} partnerName={s.pair_id ? (partner?.name ?? null) : null} />
+                <DeleteSessionButton id={s.id} title={s.title} partnerName={partnerNames(s.pair_id)} />
               </li>
             ))}
           </ul>
         )}
         <div style={{ borderTop: "1px solid var(--color-line)" }}>
-          <QuickLog athleteId={athlete.id} date={date} partnerName={partner?.name ?? null} strengthTemplates={strengthTemplates} />
+          <QuickLog athleteId={athlete.id} date={date} others={others.map((o) => ({ id: o.id, name: o.name }))} strengthTemplates={strengthTemplates} />
         </div>
       </section>
 

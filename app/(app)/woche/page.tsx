@@ -14,6 +14,16 @@ import { weekFromParam } from "@/lib/week-param";
 export const metadata: Metadata = { title: "Woche" };
 
 function Goal({ label, g }: { label: string; g: GoalProgress }) {
+  if (g.target === 0) {
+    // No goal (e.g. Anny): just count.
+    return (
+      <span className="flex items-baseline gap-1.5">
+        <span className="t-label text-mute">{label}</span>
+        <span className="t-num text-[18px] font-medium">{g.done}</span>
+        <span className="t-label t-label-sm text-mute">kein Ziel</span>
+      </span>
+    );
+  }
   const reached = g.done >= g.target;
   return (
     <span className="flex items-baseline gap-1.5">
@@ -59,7 +69,7 @@ export default async function WeekPage({ searchParams }: PageProps<"/woche">) {
       <h1 className="t-head text-[30px]">Woche</h1>
       <WeekNav monday={monday} basePath="/woche" />
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {summaries.map((s) => (
           <section key={s.athlete.id} className="card">
             <div className="card-head">
@@ -108,7 +118,7 @@ export default async function WeekPage({ searchParams }: PageProps<"/woche">) {
                   {formatDayShort(d)}
                 </Link>
               </div>
-              <div className="grid flex-1 grid-cols-2 lg:grid-cols-1">
+              <div className="grid flex-1 lg:!grid-cols-1" style={{ gridTemplateColumns: `repeat(${athletes.length}, minmax(0, 1fr))` }}>
                 {athletes.map((a, i) => {
                   const sessions = data.sessions.filter((s) => s.athlete_id === a.id && s.date === d);
                   const log = data.logs.find((l) => l.athlete_id === a.id && l.date === d);
@@ -121,9 +131,9 @@ export default async function WeekPage({ searchParams }: PageProps<"/woche">) {
                       <span className="t-label t-label-sm text-mute">{a.name}</span>
                       {sessions.length === 0 ? <span className="text-[12px] text-dead">kein Training</span> : null}
                       {sessions.map((s) => (
-                        <Link key={s.id} href={`/einheit/${s.id}`} className="flex items-center gap-1.5">
+                        <Link key={s.id} href={`/einheit/${s.id}`} className="flex items-start gap-1.5">
                           <CategoryMark category={s.category} status={s.status} size={20} />
-                          <span className={`truncate text-[13px] ${s.status === "skipped" ? "text-mute line-through" : ""}`}>{s.title}</span>
+                          <span className={`text-[13px] leading-tight [overflow-wrap:anywhere] ${s.status === "skipped" ? "text-mute line-through" : ""}`}>{s.title}</span>
                         </Link>
                       ))}
                       <span className="t-num text-[12px]" style={{ color: log?.steps ? "var(--color-ink)" : "var(--color-dead)" }}>

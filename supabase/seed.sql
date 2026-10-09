@@ -3,8 +3,11 @@
 -- Strength templates are Robert's own plans (26.09.2026); sets and reps are
 -- defaults, editable under Planung > Vorlagen.
 
-insert into public.athletes (slug, name, sort_order)
-values ('robert', 'Robert', 1), ('eddie', 'Eddie', 2)
+insert into public.athletes (slug, name, sort_order, training_target_per_week, bodyfat_formula)
+values
+  ('robert', 'Robert', 1, 5, 'jp7_male'),
+  ('eddie', 'Eddie', 2, 5, 'jp7_male'),
+  ('anny', 'Anny', 3, 0, null) -- no weekly goal; formula chosen in the app
 on conflict (slug) do nothing;
 
 insert into public.exercises (name)

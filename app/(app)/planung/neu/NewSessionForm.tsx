@@ -16,7 +16,7 @@ export function NewSessionForm({
 }: {
   date: string;
   athletes: { id: string; name: string }[];
-  defaultWho: string;
+  defaultWho: string[];
   templates: { id: string; name: string; category: Category; detail: string }[];
   back: string;
   defaultStatus: "planned" | "done";
@@ -32,7 +32,7 @@ export function NewSessionForm({
         <input type="date" name="date" defaultValue={date} required className="field" />
       </label>
 
-      <WhoChoice athletes={athletes} defaultWho={defaultWho} />
+      <WhoChoice athletes={athletes} defaultIds={defaultWho} />
 
       <fieldset className="flex flex-col gap-1.5">
         <legend className="t-label mb-1.5">Status</legend>

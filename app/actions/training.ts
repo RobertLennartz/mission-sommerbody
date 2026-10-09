@@ -28,18 +28,21 @@ function toResult(error: unknown): SaveResult {
 
 export type CreateState = { error?: string };
 
-/** "Einheit planen" / "Einheit erfassen": one person or both, from a template or free. */
+/** Own athlete first, then the chosen companions; every id must be a known athlete. */
+async function athleteGroup(ownId: string | null, withIds: string[]): Promise<string[]> {
+  const ids = [...new Set([...(ownId ? [ownId] : []), ...withIds])];
+  for (const id of ids) await requireAthlete(id);
+  return ids;
+}
+
+/** "Einheit planen" / "Einheit erfassen": one or more people, from a template or free. */
 export async function createSessions(_prev: CreateState, formData: FormData): Promise<CreateState> {
   await guard();
   let ids: string[];
   let date: string;
   try {
     date = requireDate(formData.get("date"));
-    const who = String(formData.get("who") ?? "");
-    const athleteIds =
-      who === "both"
-        ? (await db().from("athletes").select("id").order("sort_order")).data?.map((a) => a.id) ?? []
-        : [(await requireAthlete(who)).id];
+    const athleteIds = await athleteGroup(null, formData.getAll("who").map(String));
     if (athleteIds.length === 0) throw new InputError("Bitte auswählen, für wen.");
     const status = oneOf(formData.get("status"), ["planned", "done"] as const, "Status");
     const templateRaw = String(formData.get("template") ?? "");
@@ -74,18 +77,17 @@ export async function createSessions(_prev: CreateState, formData: FormData): Pr
 
 /**
  * Quick log from the today page: "Was habt ihr heute gemacht?" Creates a done
- * session (optionally for both) and opens the own one for details. Several per
+ * session (optionally together with others) and opens the own one for details. Several per
  * day are fine, each tap adds one more.
  */
-export async function quickLogSession(athleteId: string, date: string, category: string, activity: string | null, both: boolean): Promise<void> {
+export async function quickLogSession(athleteId: string, date: string, category: string, activity: string | null, withIds: string[]): Promise<void> {
   await guard();
   const athlete = await requireAthlete(athleteId);
   const day = requireDate(date);
   const cat = oneOf(category, ["strength", "cardio", "hiit", "recovery"] as const, "Kategorie");
   const act = activity ? parseText(activity, TEXT_MAX.activity) : null;
   if (act && !act.ok) throw new InputError(act.error);
-  const athletes = unwrap(await db().from("athletes").select("id").order("sort_order"), "Personen laden");
-  const ids = both ? [athlete.id, ...athletes.map((a) => a.id).filter((id) => id !== athlete.id)] : [athlete.id];
+  const ids = await athleteGroup(athlete.id, withIds);
   const title = act?.ok && act.value ? act.value : cat === "strength" ? "Kraft" : cat === "hiit" ? "HIIT" : cat === "recovery" ? "Recovery" : "Ausdauer";
   const created = unwrap(
     await db().rpc("create_sessions", { p_athletes: ids, p_date: day, p_status: "done", p_template: null, p_category: cat, p_title: title }),
@@ -99,13 +101,12 @@ export async function quickLogSession(athleteId: string, date: string, category:
 }
 
 /** Quick log of a strength session from a template: all exercises prefilled, status done. */
-export async function quickLogTemplate(athleteId: string, date: string, templateId: string, both: boolean): Promise<void> {
+export async function quickLogTemplate(athleteId: string, date: string, templateId: string, withIds: string[]): Promise<void> {
   await guard();
   const athlete = await requireAthlete(athleteId);
   const day = requireDate(date);
   const template = requireUuid(templateId, "Vorlage");
-  const athletes = unwrap(await db().from("athletes").select("id").order("sort_order"), "Personen laden");
-  const ids = both ? [athlete.id, ...athletes.map((a) => a.id).filter((id) => id !== athlete.id)] : [athlete.id];
+  const ids = await athleteGroup(athlete.id, withIds);
   const created = unwrap(
     await db().rpc("create_sessions", { p_athletes: ids, p_date: day, p_status: "done", p_template: template, p_category: null, p_title: null }),
     "Einheit anlegen",
@@ -114,14 +115,13 @@ export async function quickLogTemplate(athleteId: string, date: string, template
 }
 
 /** Recovery from the today page: one done entry per ticked item (Sauna, Eisbad, Massage), no time. */
-export async function quickLogRecovery(athleteId: string, date: string, items: string[], both: boolean): Promise<void> {
+export async function quickLogRecovery(athleteId: string, date: string, items: string[], withIds: string[]): Promise<void> {
   await guard();
   const athlete = await requireAthlete(athleteId);
   const day = requireDate(date);
   const chosen = [...new Set(items)].map((i) => oneOf(i, RECOVERY_OPTIONS, "Recovery"));
   if (chosen.length === 0) throw new InputError("Bitte mindestens eins auswählen.");
-  const athletes = unwrap(await db().from("athletes").select("id").order("sort_order"), "Personen laden");
-  const ids = both ? [athlete.id, ...athletes.map((a) => a.id).filter((id) => id !== athlete.id)] : [athlete.id];
+  const ids = await athleteGroup(athlete.id, withIds);
   for (const item of chosen) {
     const created = unwrap(
       await db().rpc("create_sessions", { p_athletes: ids, p_date: day, p_status: "done", p_template: null, p_category: "recovery", p_title: item }),
@@ -140,9 +140,8 @@ export async function fillWeek(_prev: FillState, formData: FormData): Promise<Fi
     const monday = requireDate(formData.get("monday"));
     if (startOfIsoWeek(monday) !== monday) throw new InputError("Ungültige Woche.");
     const weekTemplate = requireUuid(formData.get("weekTemplate"), "Wochenvorlage");
-    const who = String(formData.get("who") ?? "");
-    const athletes = unwrap(await db().from("athletes").select("id, slug").order("sort_order"), "Personen laden");
-    const athleteIds = who === "both" ? athletes.map((a) => a.id) : [(await requireAthlete(who)).id];
+    const athleteIds = await athleteGroup(null, formData.getAll("who").map(String));
+    if (athleteIds.length === 0) throw new InputError("Bitte auswählen, für wen.");
     const replace = formData.get("replace") === "on";
     const count = unwrap(
       await db().rpc("fill_week", {

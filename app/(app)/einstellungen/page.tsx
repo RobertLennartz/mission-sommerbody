@@ -25,8 +25,9 @@ export default async function SettingsPage() {
         ))}
       </div>
       <p className="-mt-3 text-[13px] leading-relaxed text-mute">
-        Das Geburtsjahr braucht die Körperfettformel. Das Proteinziel gilt pro kg Körpergewicht aus dem letzten Checkup. In der
-        letzten Woche (Mo bis Fr) wird das Wochenziel anteilig gerechnet.
+        Geburtsjahr und Formel braucht die Körperfettberechnung (Jackson/Pollock gibt es getrennt für Männer und Frauen). Das
+        Proteinziel gilt pro kg Körpergewicht aus dem letzten Checkup. Wochenziel 0 heißt: kein Ziel, nur mitzählen. In der letzten
+        Woche (Mo bis Fr) wird ein Ziel anteilig gerechnet.
       </p>
 
       <section className="card">

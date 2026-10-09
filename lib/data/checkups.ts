@@ -26,7 +26,13 @@ export async function getCheckups(athletes: AthleteRow[]): Promise<CheckupDetail
       ...c,
       readings,
       rawReadings,
-      composition: computeBodyComposition({ readings, birthYear: athlete?.birth_year ?? null, measuredOn: c.date, weightKg: c.weight_kg }),
+      composition: computeBodyComposition({
+        readings,
+        birthYear: athlete?.birth_year ?? null,
+        measuredOn: c.date,
+        weightKg: c.weight_kg,
+        formula: athlete?.bodyfat_formula ?? null,
+      }),
     };
   });
 }

@@ -34,7 +34,8 @@ npm install
    4. `supabase/migrations/0004_flexible_training.sql`
    5. `supabase/migrations/0005_duration_seconds.sql`
    6. `supabase/migrations/0006_daily_nutrition_totals.sql`
-   7. `supabase/seed.sql` (Robert, Eddie, Übungen, Vorlagen, Standardwoche; mehrfach ausführbar)
+   7. `supabase/migrations/0007_third_person.sql`
+   8. `supabase/seed.sql` (Robert, Eddie, Anny, Übungen, Vorlagen, Standardwoche; mehrfach ausführbar)
 3. Unter **Settings > API Keys** den Secret Key (`sb_secret_...`) kopieren.
 
 Die Migrationen schalten RLS auf allen Tabellen ein und geben nur der Rolle `service_role` Rechte. Mit dem öffentlichen Key ist nichts lesbar.
@@ -81,6 +82,14 @@ Neu einrichten, falls nötig:
 - **Woche, Planung, Vorlagen:** optional planen, Woche aus Vorlage füllen, verschieben. Ein Wochenziel für alle Trainings, Recovery zählt extra.
 - **Ernährung, Checkups, Übersicht:** Protein pro Tag und Woche, Körperfett nach Jackson/Pollock mit Start-gegen-Ende-Vergleich, Verläufe.
 - **Export:** CSV und ZIP unter Einstellungen.
+
+## Backup
+
+```bash
+npm run backup
+```
+
+Schreibt jede Tabelle als JSON nach `backups/<Zeitstempel>/` (nur lokal, per `.gitignore` ausgeschlossen, enthält Gesundheitsdaten). Vor jeder Schema-Änderung ausführen.
 
 ## Prüfen
 

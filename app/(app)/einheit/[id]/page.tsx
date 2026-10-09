@@ -8,8 +8,8 @@ import { getAthletes, requireSelectedAthlete } from "@/lib/athletes";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { getExercises, getSession, lastPerformances, type LastPerformance } from "@/lib/data/training";
 import { formatDayLong, formatDayShort } from "@/lib/dates";
-import { formatDecimal } from "@/lib/numbers";
-import { db } from "@/lib/supabase/server";
+import { formatDecimal, joinNames } from "@/lib/numbers";
+import { pairPartners } from "@/lib/data/day";
 import { AddExerciseForm, ExerciseBlock, RpeButtons, SaveAsTemplateForm, SessionBasics, StatusButtons, TrainingNumbers } from "./SessionForms";
 
 export const metadata: Metadata = { title: "Einheit" };
@@ -36,8 +36,9 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
 
   let partnerName: string | null = null;
   if (session.pair_id) {
-    const p = await db().from("sessions").select("athlete_id").eq("pair_id", session.pair_id).neq("id", session.id).maybeSingle();
-    partnerName = athletes.find((a) => a.id === p.data?.athlete_id)?.name ?? null;
+    const others = await pairPartners([session.pair_id], session.athlete_id);
+    const ids = others.get(session.pair_id) ?? [];
+    partnerName = ids.length ? joinNames(ids.map((id) => athletes.find((a) => a.id === id)?.name ?? "")) : null;
   }
 
   const [last, catalog] = await Promise.all([

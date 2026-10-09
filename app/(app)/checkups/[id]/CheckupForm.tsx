@@ -7,7 +7,7 @@ import { CompactNumber } from "@/components/form/CompactNumber";
 import { SaveStatusText } from "@/components/form/SaveStatusText";
 import { useAutosave } from "@/components/form/useAutosave";
 import { deleteCheckup, saveCheckupField, saveSkinfold } from "@/app/actions/checkups";
-import { SITE_HINT, SITE_LABEL, SKINFOLD_SITES, ageFromBirthYear, computeBodyComposition, mean, type SkinfoldReadings } from "@/lib/bodyfat";
+import { FORMULA_LABEL, SITE_HINT, SITE_LABEL, SKINFOLD_SITES, ageFromBirthYear, computeBodyComposition, mean, type BodyfatFormula, type SkinfoldReadings } from "@/lib/bodyfat";
 import { FIELDS, TEXT_MAX } from "@/lib/fields";
 import { CIRCUMFERENCES } from "@/lib/measurements";
 import { formatDecimal, toInputValue } from "@/lib/numbers";
@@ -19,10 +19,12 @@ export function CheckupForm({
   checkup,
   rawReadings,
   birthYear,
+  formula,
 }: {
   checkup: CheckupRow;
   rawReadings: Record<string, number>;
   birthYear: number | null;
+  formula: BodyfatFormula | null;
 }) {
   const [weight, setWeight] = useState<number | null>(checkup.weight_kg);
   const [date, setDate] = useState(checkup.date);
@@ -34,7 +36,7 @@ export function CheckupForm({
     const values = [1, 2, 3].map((n) => grid[`${site}:${n}`]).filter((v): v is number => typeof v === "number");
     if (values.length) readings[site] = values;
   }
-  const result = computeBodyComposition({ readings, birthYear, measuredOn: date, weightKg: weight });
+  const result = computeBodyComposition({ readings, birthYear, measuredOn: date, weightKg: weight, formula });
 
   const dateAuto = useAutosave({
     id: `checkup-date-${checkup.id}`,
@@ -67,7 +69,7 @@ export function CheckupForm({
           <p className="px-4 pb-4 text-[13px] text-mute">Es fehlt noch: {result.missing.join(", ")}.</p>
         ) : (
           <p className="px-4 pb-4 text-[13px] text-mute">
-            Jackson/Pollock 7-Punkt, Siri-Formel, Alter {birthYear ? ageFromBirthYear(birthYear, date) : "?"} Jahre.
+            {formula ? FORMULA_LABEL[formula] : ""}, Siri-Umrechnung, Alter {birthYear ? ageFromBirthYear(birthYear, date) : "?"} Jahre.
           </p>
         )}
       </section>

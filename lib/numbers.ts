@@ -68,3 +68,9 @@ export function formatSigned(n: number, digits = 1): string {
 export function daysLabel(n: number): string {
   return `${formatInt(n)} ${n === 1 ? "Tag" : "Tage"}`;
 }
+
+/** "Eddie", "Eddie und Anny", "Robert, Eddie und Anny" */
+export function joinNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} und ${names[names.length - 1]}`;
+}

@@ -9,15 +9,16 @@ import { CATEGORY_COLOR, QUICK_ACTIVITIES, RECOVERY_OPTIONS } from "@/lib/catego
 export function QuickLog({
   athleteId,
   date,
-  partnerName,
+  others,
   strengthTemplates,
 }: {
   athleteId: string;
   date: string;
-  partnerName: string | null;
+  /** The other people, to log a session together with them. */
+  others: { id: string; name: string }[];
   strengthTemplates: { id: string; name: string; count: number }[];
 }) {
-  const [both, setBoth] = useState(false);
+  const [withIds, setWithIds] = useState<string[]>([]);
   const [open, setOpen] = useState<"strength" | "recovery" | null>(null);
   const [recovery, setRecovery] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
@@ -36,7 +37,7 @@ export function QuickLog({
             onClick={() => {
               if (q.category === "recovery") setOpen((o) => (o === "recovery" ? null : "recovery"));
               else if (q.category === "strength" && strengthTemplates.length > 0) setOpen((o) => (o === "strength" ? null : "strength"));
-              else startTransition(() => quickLogSession(athleteId, date, q.category, q.activity, both));
+              else startTransition(() => quickLogSession(athleteId, date, q.category, q.activity, withIds));
             }}
           >
             {q.label}
@@ -69,7 +70,7 @@ export function QuickLog({
             disabled={pending || recovery.length === 0}
             onClick={() =>
               startTransition(async () => {
-                await quickLogRecovery(athleteId, date, recovery, both);
+                await quickLogRecovery(athleteId, date, recovery, withIds);
                 setRecovery([]);
                 setOpen(null);
               })
@@ -89,7 +90,7 @@ export function QuickLog({
                 type="button"
                 className="btn flex-col gap-0 px-2 py-2"
                 disabled={pending}
-                onClick={() => startTransition(() => quickLogTemplate(athleteId, date, t.id, both))}
+                onClick={() => startTransition(() => quickLogTemplate(athleteId, date, t.id, withIds))}
               >
                 <span>{t.name}</span>
                 <span className="t-label t-label-sm text-mute normal-case">{t.count} Übungen</span>
@@ -99,7 +100,7 @@ export function QuickLog({
               type="button"
               className="btn px-2"
               disabled={pending}
-              onClick={() => startTransition(() => quickLogSession(athleteId, date, "strength", null, both))}
+              onClick={() => startTransition(() => quickLogSession(athleteId, date, "strength", null, withIds))}
             >
               Frei, ohne Vorlage
             </button>
@@ -107,11 +108,21 @@ export function QuickLog({
         </div>
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {partnerName ? (
-          <label className="flex items-center gap-2 text-[15px]">
-            <input type="checkbox" className="h-5 w-5 accent-[var(--color-ink)]" checked={both} onChange={(e) => setBoth(e.target.checked)} />
-            Zusammen mit {partnerName}
-          </label>
+        {others.length ? (
+          <fieldset className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <legend className="sr-only">Zusammen mit</legend>
+            {others.map((o) => (
+              <label key={o.id} className="flex items-center gap-2 text-[15px]">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-[var(--color-ink)]"
+                  checked={withIds.includes(o.id)}
+                  onChange={(e) => setWithIds((ids) => (e.target.checked ? [...ids, o.id] : ids.filter((x) => x !== o.id)))}
+                />
+                Mit {o.name}
+              </label>
+            ))}
+          </fieldset>
         ) : (
           <span />
         )}

@@ -1,8 +1,11 @@
 /**
- * Jackson/Pollock 7-site skinfold formula for men, converted with Siri.
+ * Jackson/Pollock 7-site skinfold formulas, converted with Siri.
  *
- *   body_density = 1.112 - 0.00043499*S + 0.00000055*S^2 - 0.00028826*age
+ *   men   (Jackson & Pollock 1978): 1.112 - 0.00043499*S + 0.00000055*S^2 - 0.00028826*age
+ *   women (Jackson, Pollock & Ward 1980): 1.097 - 0.00046971*S + 0.00000056*S^2 - 0.00012828*age
  *   body_fat_pct = 495 / body_density - 450
+ *
+ * The formula is chosen per person in the settings, never guessed.
  *
  * S is the sum of the seven sites in mm. Each site may have up to three
  * readings; the mean is used.
@@ -27,7 +30,17 @@ export function mean(values: number[]): number | null {
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-export function bodyDensity(sumMm: number, age: number): number {
+export type BodyfatFormula = "jp7_male" | "jp7_female";
+
+export const FORMULA_LABEL: Record<BodyfatFormula, string> = {
+  jp7_male: "Jackson/Pollock 7-Punkt, Männer",
+  jp7_female: "Jackson/Pollock 7-Punkt, Frauen",
+};
+
+export function bodyDensity(sumMm: number, age: number, formula: BodyfatFormula = "jp7_male"): number {
+  if (formula === "jp7_female") {
+    return 1.097 - 0.00046971 * sumMm + 0.00000056 * sumMm ** 2 - 0.00012828 * age;
+  }
   return 1.112 - 0.00043499 * sumMm + 0.00000055 * sumMm ** 2 - 0.00028826 * age;
 }
 
@@ -56,6 +69,7 @@ export function computeBodyComposition(input: {
   birthYear: number | null;
   measuredOn: string;
   weightKg: number | null;
+  formula: BodyfatFormula | null;
 }): BodyComposition {
   const siteMeans: Partial<Record<SkinfoldSite, number>> = {};
   const missing: string[] = [];
@@ -66,14 +80,15 @@ export function computeBodyComposition(input: {
     else siteMeans[site] = m;
   }
   if (input.birthYear === null) missing.push("Geburtsjahr");
+  if (input.formula === null) missing.push("Körperfettformel (Einstellungen)");
 
   const complete = Object.keys(siteMeans).length === SKINFOLD_SITES.length;
   const sumMm = complete ? Object.values(siteMeans).reduce((a, b) => a + b, 0) : null;
 
   let density: number | null = null;
   let bodyFatPct: number | null = null;
-  if (sumMm !== null && input.birthYear !== null) {
-    density = bodyDensity(sumMm, ageFromBirthYear(input.birthYear, input.measuredOn));
+  if (sumMm !== null && input.birthYear !== null && input.formula !== null) {
+    density = bodyDensity(sumMm, ageFromBirthYear(input.birthYear, input.measuredOn), input.formula);
     bodyFatPct = siriBodyFatPct(density);
   }
 

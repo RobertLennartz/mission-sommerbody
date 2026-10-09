@@ -9,6 +9,7 @@ import { getTemplates, getWeekTemplates, listSessions } from "@/lib/data/trainin
 import { addDays, formatDayLong, weekDates } from "@/lib/dates";
 import { isInMission } from "@/lib/mission";
 import { weekFromParam } from "@/lib/week-param";
+import { joinNames } from "@/lib/numbers";
 import { FillWeekForm, SessionControls } from "./PlanControls";
 
 export const metadata: Metadata = { title: "Planung" };
@@ -63,9 +64,9 @@ export default async function PlanningPage({ searchParams }: PageProps<"/planung
                     {athletes.map((athlete) => {
                       const own = daySessions.filter((s) => s.athlete_id === athlete.id);
                       return own.map((s, i) => {
-                        const partner = s.pair_id
-                          ? sessions.find((x) => x.pair_id === s.pair_id && x.id !== s.id)
-                          : undefined;
+                        const partners = s.pair_id
+                          ? sessions.filter((x) => x.pair_id === s.pair_id && x.id !== s.id)
+                          : [];
                         return (
                           <li key={s.id} className="flex flex-col gap-2 px-4 py-3">
                             <div className="flex items-center gap-3">
@@ -75,7 +76,7 @@ export default async function PlanningPage({ searchParams }: PageProps<"/planung
                                 <span className="t-label t-label-sm text-mute">
                                   {athlete.name} · {CATEGORY_LABEL[s.category]}
                                   {s.template_id && templateName.get(s.template_id) !== s.title ? ` · ${templateName.get(s.template_id)}` : ""}
-                                  {partner ? " · gemeinsam" : ""}
+                                  {partners.length ? " · gemeinsam" : ""}
                                 </span>
                               </Link>
                               <StatusPill status={s.status} />
@@ -84,7 +85,7 @@ export default async function PlanningPage({ searchParams }: PageProps<"/planung
                               id={s.id}
                               date={s.date}
                               monday={monday}
-                              partnerName={partner ? (nameOf.get(partner.athlete_id) ?? null) : null}
+                              partnerName={partners.length ? joinNames(partners.map((x) => nameOf.get(x.athlete_id) ?? "")) : null}
                               isFirst={i === 0}
                               isLast={i === own.length - 1}
                             />
@@ -107,7 +108,7 @@ export default async function PlanningPage({ searchParams }: PageProps<"/planung
             <FillWeekForm
               monday={monday}
               athletes={athletes.map((a) => ({ id: a.id, name: a.name }))}
-              defaultWho="both"
+              defaultIds={athletes.filter((a) => a.training_target_per_week > 0).map((a) => a.id)}
               weekTemplates={weekTemplates.map((w) => ({
                 id: w.id,
                 name: w.name,

@@ -43,7 +43,7 @@ describe("computeBodyComposition", () => {
 
   it("uses the mean of up to three readings per site", () => {
     expect(mean([13, 14, 15])).toBe(14);
-    const r = computeBodyComposition({ readings, birthYear: 1991, measuredOn: "2026-10-12", weightKg: 90 });
+    const r = computeBodyComposition({ readings, birthYear: 1991, measuredOn: "2026-10-12", weightKg: 90, formula: "jp7_male" });
     expect(r.sumMm).toBeCloseTo(100, 10);
     expect(r.bodyFatPct).toBeCloseTo(15.2641, 4);
     expect(r.fatMassKg).toBeCloseTo(90 * 0.152641, 3);
@@ -53,15 +53,29 @@ describe("computeBodyComposition", () => {
 
   it("reports what is missing instead of guessing", () => {
     const partial = { ...readings, thigh: [] };
-    const r = computeBodyComposition({ readings: partial, birthYear: null, measuredOn: "2026-10-12", weightKg: null });
+    const r = computeBodyComposition({ readings: partial, birthYear: null, measuredOn: "2026-10-12", weightKg: null, formula: null });
     expect(r.bodyFatPct).toBeNull();
-    expect(r.missing).toEqual(["Hautfalte Oberschenkel", "Geburtsjahr"]);
+    expect(r.missing).toEqual(["Hautfalte Oberschenkel", "Geburtsjahr", "Körperfettformel (Einstellungen)"]);
   });
 
   it("computes body fat without weight but no masses", () => {
-    const r = computeBodyComposition({ readings, birthYear: 1991, measuredOn: "2026-10-12", weightKg: null });
+    const r = computeBodyComposition({ readings, birthYear: 1991, measuredOn: "2026-10-12", weightKg: null, formula: "jp7_male" });
     expect(r.bodyFatPct).toBeCloseTo(15.2641, 4);
     expect(r.fatMassKg).toBeNull();
     expect(r.missing).toEqual(["Gewicht"]);
+  });
+});
+
+describe("women's formula (Jackson, Pollock & Ward 1980)", () => {
+  // Published example: S = 120 mm, 45 years -> density 1.0429, about 24.6 % body fat.
+  it("matches the published example", () => {
+    const d = bodyDensity(120, 45, "jp7_female");
+    expect(d).toBeCloseTo(1.0429262, 7);
+    expect(siriBodyFatPct(d)).toBeCloseTo(24.6261, 4);
+  });
+
+  it("is used only when chosen", () => {
+    expect(bodyDensity(120, 45)).toBeCloseTo(bodyDensity(120, 45, "jp7_male"), 12);
+    expect(bodyDensity(120, 45, "jp7_female")).not.toBeCloseTo(bodyDensity(120, 45, "jp7_male"), 3);
   });
 });

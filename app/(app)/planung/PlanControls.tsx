@@ -15,7 +15,7 @@ export function SessionControls({
   id: string;
   date: string;
   monday: string;
-  /** Set when this is a joint session: name of the other person. */
+  /** Set when this is a joint session: names of the others ("Eddie und Anny"). */
   partnerName: string | null;
   isFirst: boolean;
   isLast: boolean;
@@ -74,12 +74,12 @@ export function FillWeekForm({
   monday,
   weekTemplates,
   athletes,
-  defaultWho,
+  defaultIds,
 }: {
   monday: string;
   weekTemplates: { id: string; name: string; summary: string }[];
   athletes: { id: string; name: string }[];
-  defaultWho: string;
+  defaultIds: string[];
 }) {
   const [state, action, pending] = useActionState<FillState, FormData>(fillWeek, {});
   if (weekTemplates.length === 0) return null;
@@ -96,7 +96,7 @@ export function FillWeekForm({
           ))}
         </select>
       </label>
-      <WhoChoice athletes={athletes} defaultWho={defaultWho} />
+      <WhoChoice athletes={athletes} defaultIds={defaultIds} />
       <label className="flex items-center gap-2 text-[15px]">
         <input type="checkbox" name="replace" className="h-5 w-5 accent-[var(--color-ink)]" />
         Geplante (noch nicht erledigte) Einheiten dieser Woche vorher löschen
@@ -110,17 +110,16 @@ export function FillWeekForm({
   );
 }
 
-export function WhoChoice({ athletes, defaultWho }: { athletes: { id: string; name: string }[]; defaultWho: string }) {
-  const options = [...athletes.map((a) => ({ value: a.id, label: a.name })), { value: "both", label: "Beide" }];
+export function WhoChoice({ athletes, defaultIds }: { athletes: { id: string; name: string }[]; defaultIds: string[] }) {
   return (
     <fieldset className="flex flex-col gap-1.5">
-      <legend className="t-label mb-1.5">Für wen</legend>
-      <div className="grid grid-cols-3 gap-1.5">
-        {options.map((o) => (
-          <label key={o.value} className="relative">
-            <input type="radio" name="who" value={o.value} defaultChecked={o.value === defaultWho} className="peer sr-only" />
+      <legend className="t-label mb-1.5">Für wen (mehrere möglich)</legend>
+      <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${athletes.length}, minmax(0, 1fr))` }}>
+        {athletes.map((a) => (
+          <label key={a.id} className="relative">
+            <input type="checkbox" name="who" value={a.id} defaultChecked={defaultIds.includes(a.id)} className="peer sr-only" />
             <span className="btn w-full peer-checked:bg-acc peer-checked:text-acc-on peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-acc">
-              {o.label}
+              {a.name}
             </span>
           </label>
         ))}

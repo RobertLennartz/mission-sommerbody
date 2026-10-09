@@ -25,13 +25,19 @@ export default async function CheckupPage({ params }: PageProps<"/checkups/[id]"
         <h1 className="t-head text-[28px]">
           {CHECKUP_TYPE_LABEL[checkup.type]}-Checkup {athlete.name}
         </h1>
+        {athlete.bodyfat_formula === null ? (
+          <p className="mt-2 text-[14px] text-bad">
+            Für das Körperfett fehlt die Formel (Männer oder Frauen).{" "}
+            <Link href="/einstellungen" className="underline">In den Einstellungen wählen</Link>.
+          </p>
+        ) : null}
         {athlete.birth_year === null ? (
           <p className="mt-2 text-[14px] text-bad">
             Für das Körperfett fehlt das Geburtsjahr. <Link href="/einstellungen" className="underline">In den Einstellungen eintragen</Link>.
           </p>
         ) : null}
       </div>
-      <CheckupForm checkup={checkup} rawReadings={checkup.rawReadings} birthYear={athlete.birth_year} />
+      <CheckupForm checkup={checkup} rawReadings={checkup.rawReadings} birthYear={athlete.birth_year} formula={athlete.bodyfat_formula} />
     </div>
   );
 }

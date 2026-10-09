@@ -24,7 +24,10 @@ export type AthleteRow = Base & {
   protein_target_g_per_kg: number;
   steps_target: number;
   training_target_per_week: number;
+  bodyfat_formula: BodyfatFormula | null;
 };
+
+export type BodyfatFormula = "jp7_male" | "jp7_female";
 
 export type CheckupType = "start" | "interim" | "end";
 
@@ -157,6 +160,7 @@ export type Database = {
         | "protein_target_g_per_kg"
         | "steps_target"
         | "training_target_per_week"
+        | "bodyfat_formula"
       >;
       checkups: Table<CheckupRow, Exclude<keyof CheckupRow, "athlete_id" | "type" | "date" | Auto>>;
       checkup_skinfolds: {

@@ -19,6 +19,11 @@ export async function saveAthleteField(athleteId: string, field: string, raw: st
   try {
     await guard();
     const athlete = await requireAthlete(athleteId);
+    if (field === "bodyfat_formula") {
+      const value = raw === "" ? null : oneOf(raw, ["jp7_male", "jp7_female"] as const, "Formel");
+      check(await db().from("athletes").update({ bodyfat_formula: value }).eq("id", athlete.id), "Einstellung speichern");
+      return saved;
+    }
     const column = oneOf(field, Object.keys(SPEC) as (keyof typeof SPEC)[], "Feld");
     const r = parseField(raw, SPEC[column]);
     if (!r.ok) throw new InputError(r.error);

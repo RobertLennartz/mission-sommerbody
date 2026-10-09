@@ -43,7 +43,9 @@ export default async function CheckupsPage() {
           <section key={athlete.id} className="card">
             <div className="card-head flex items-baseline justify-between">
               <h2 className="t-strong text-[16px] uppercase">{athlete.name}</h2>
-              {athlete.birth_year === null ? <span className="t-label text-bad">Geburtsjahr fehlt</span> : null}
+              {athlete.birth_year === null || athlete.bodyfat_formula === null ? (
+                <span className="t-label text-bad">{athlete.birth_year === null ? "Geburtsjahr" : "Formel"} fehlt</span>
+              ) : null}
             </div>
             <div className="grid grid-cols-2 gap-2 p-4">
               {CHECKUP_TYPES.map((type) => {

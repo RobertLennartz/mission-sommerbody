@@ -29,7 +29,7 @@ export default async function NewSessionPage({ searchParams }: PageProps<"/planu
         back={back}
         defaultStatus={params.status === "erledigt" || date < berlinToday() ? "done" : "planned"}
         athletes={athletes.map((a) => ({ id: a.id, name: a.name }))}
-        defaultWho={selected.id}
+        defaultWho={[selected.id]}
         templates={templates.map((t) => ({
           id: t.id,
           name: t.name,

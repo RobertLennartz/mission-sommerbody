@@ -46,3 +46,18 @@ export async function getDay(athleteId: string, date: string) {
     sessions: unwrap(sessions, "Einheiten laden") as SessionRow[],
   };
 }
+
+/** For joint sessions: pair_id -> athlete ids of the other participants. */
+export async function pairPartners(pairIds: string[], ownAthleteId: string): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>();
+  if (pairIds.length === 0) return out;
+  const rows = unwrap(
+    await db().from("sessions").select("pair_id, athlete_id").in("pair_id", pairIds).neq("athlete_id", ownAthleteId),
+    "Gemeinsame Einheiten laden",
+  );
+  for (const r of rows) {
+    if (!r.pair_id) continue;
+    out.set(r.pair_id, [...(out.get(r.pair_id) ?? []), r.athlete_id]);
+  }
+  return out;
+}
