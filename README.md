@@ -91,7 +91,7 @@ Neu einrichten, falls nötig:
 - **iPhone:** Seite in Safari öffnen, Teilen, "Zum Home-Bildschirm". Danach über das Icon starten und dort einmal anmelden (die Home-Bildschirm-App hat eigene Cookies).
 - **Android:** Seite in Chrome öffnen, Menü, "App installieren".
 
-Icons: `app/apple-icon.png` (iOS) und `public/icons/` (Manifest). Nach einer Logo-Änderung in `app/icon.svg` neu erzeugen mit `node scripts/icons.mjs`.
+Icons: Frieda aus `assets/frieda-icon.webp`. Daraus entstehen `app/apple-icon.png` (iOS), `public/icons/` (Manifest, Android) und das Favicon `app/icon.png` und `app/favicon.ico` (nur der Kopf, das ganze Bild ist bei 16 px nicht zu erkennen). Nach einem neuen Bild neu erzeugen mit `node scripts/icons.mjs`. Das alte MS-Logo liegt in `assets/icon-ms-old.svg`.
 
 ## Backup
 
