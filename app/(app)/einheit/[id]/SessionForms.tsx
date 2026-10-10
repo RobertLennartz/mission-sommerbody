@@ -449,8 +449,11 @@ export function SaveAsTemplateForm({ sessionId, suggestedName }: { sessionId: st
   }
   if (!open) {
     return (
-      <div className="p-4">
-        <button type="button" className="btn btn-sm" onClick={() => setOpen(true)}>
+      <div className="flex flex-col gap-2 p-4" style={{ background: "var(--color-paper)" }}>
+        <p className="text-[14px]">
+          Diese Übungen öfter machen? Als Vorlage speichern, dann steht sie bei &quot;Was habt ihr gemacht?&quot; unter Kraft zur Auswahl, für alle drei.
+        </p>
+        <button type="button" className="btn self-start" onClick={() => setOpen(true)}>
           Als Vorlage speichern
         </button>
       </div>
@@ -461,7 +464,7 @@ export function SaveAsTemplateForm({ sessionId, suggestedName }: { sessionId: st
       <label className="flex flex-col gap-1.5">
         <span className="t-label">Name der neuen Vorlage</span>
         <div className="flex gap-2">
-          <input name="name" className="field" defaultValue={suggestedName} maxLength={60} required autoFocus />
+          <input name="name" className="field" defaultValue={suggestedName} placeholder="z. B. Bauch" maxLength={60} required autoFocus />
           <button type="submit" className="btn btn-primary shrink-0" disabled={pending}>
             Speichern
           </button>

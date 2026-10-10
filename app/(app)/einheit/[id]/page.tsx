@@ -120,7 +120,11 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
           </div>
           {exercises.length > 0 ? (
             <div style={{ borderTop: "1px solid var(--color-line)" }}>
-              <SaveAsTemplateForm sessionId={session.id} suggestedName={`${session.title} (neu)`} />
+              <SaveAsTemplateForm
+                sessionId={session.id}
+                // A free session is still called "Kraft": no point in suggesting "Kraft (neu)".
+                suggestedName={session.template_id ? `${session.title} (neu)` : session.title === "Kraft" ? "" : session.title}
+              />
             </div>
           ) : null}
         </section>
@@ -142,7 +146,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
             activity={session.activity}
           />
           ) : null}
-          <SessionBasics id={session.id} title={session.title} date={session.date} notes={session.notes} />
+          <SessionBasics key={`basics:${session.title}`} id={session.id} title={session.title} date={session.date} notes={session.notes} />
           {session.category !== "recovery" ? <RpeButtons id={session.id} initial={session.rpe} /> : null}
         </div>
       </section>

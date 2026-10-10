@@ -69,6 +69,11 @@ export function daysLabel(n: number): string {
   return `${formatInt(n)} ${n === 1 ? "Tag" : "Tage"}`;
 }
 
+/** "1 Übung", "7 Übungen" */
+export function exercisesLabel(n: number): string {
+  return `${formatInt(n)} ${n === 1 ? "Übung" : "Übungen"}`;
+}
+
 /** "Eddie", "Eddie und Anny", "Robert, Eddie und Anny" */
 export function joinNames(names: string[]): string {
   if (names.length <= 1) return names[0] ?? "";

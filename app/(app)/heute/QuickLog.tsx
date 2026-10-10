@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { quickLogRecovery, quickLogSession, quickLogTemplate } from "@/app/actions/training";
 import { CATEGORY_COLOR, QUICK_ACTIVITIES, RECOVERY_OPTIONS } from "@/lib/categories";
+import { exercisesLabel } from "@/lib/numbers";
 
 /** "Was habt ihr heute gemacht?": one tap logs a done training, several per day are fine. */
 export function QuickLog({
@@ -93,7 +94,7 @@ export function QuickLog({
                 onClick={() => startTransition(() => quickLogTemplate(athleteId, date, t.id, withIds))}
               >
                 <span>{t.name}</span>
-                <span className="t-label t-label-sm text-mute normal-case">{t.count} Übungen</span>
+                <span className="t-label t-label-sm text-mute normal-case">{exercisesLabel(t.count)}</span>
               </button>
             ))}
             <button
@@ -105,6 +106,9 @@ export function QuickLog({
               Frei, ohne Vorlage
             </button>
           </div>
+          <span className="text-[13px] text-mute">
+            Eigenes Training, zum Beispiel Bauch: &quot;Frei, ohne Vorlage&quot; wählen, Übungen eintragen und in der Einheit unten &quot;Als Vorlage speichern&quot;. Danach steht es hier.
+          </span>
         </div>
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2">

@@ -5,7 +5,7 @@ import { createTemplate } from "@/app/actions/training";
 import { requireSelectedAthlete } from "@/lib/athletes";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/categories";
 import { getTemplates, getWeekTemplates } from "@/lib/data/training";
-import { formatDecimal } from "@/lib/numbers";
+import { exercisesLabel, formatDecimal } from "@/lib/numbers";
 import { WeekTemplateEditor } from "./TemplateForms";
 
 export const metadata: Metadata = { title: "Vorlagen" };
@@ -36,7 +36,7 @@ export default async function TemplatesPage() {
                     <span className="t-label t-label-sm text-mute">
                       {CATEGORY_LABEL[t.category]}
                       {t.default_duration_min ? ` · ${t.default_duration_min} min` : ""}
-                      {t.category === "strength" ? ` · ${t.exercises.length} Übungen` : ""}
+                      {t.category === "strength" ? ` · ${exercisesLabel(t.exercises.length)}` : ""}
                       {t.default_distance_km ? ` · ${formatDecimal(t.default_distance_km, 2)} km` : ""}
                     </span>
                   </span>

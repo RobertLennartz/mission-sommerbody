@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDecimal, formatInt, formatSigned, parseDecimal, parseInteger, toInputValue } from "@/lib/numbers";
+import { exercisesLabel, formatDecimal, formatInt, formatSigned, parseDecimal, parseInteger, toInputValue } from "@/lib/numbers";
 
 describe("parseDecimal", () => {
   it.each([
@@ -48,5 +48,13 @@ describe("German formatting", () => {
     expect(formatSigned(2)).toBe("+2,0");
     expect(toInputValue(1234.5)).toBe("1234,5");
     expect(toInputValue(null)).toBe("");
+  });
+});
+
+describe("exercisesLabel", () => {
+  it("uses the singular for one", () => {
+    expect(exercisesLabel(1)).toBe("1 Übung");
+    expect(exercisesLabel(7)).toBe("7 Übungen");
+    expect(exercisesLabel(0)).toBe("0 Übungen");
   });
 });

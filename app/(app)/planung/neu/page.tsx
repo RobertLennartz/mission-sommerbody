@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getAthletes, requireSelectedAthlete } from "@/lib/athletes";
 import { getTemplates } from "@/lib/data/training";
 import { berlinToday, isIsoDate } from "@/lib/dates";
-import { formatDecimal } from "@/lib/numbers";
+import { exercisesLabel, formatDecimal } from "@/lib/numbers";
 import { NewSessionForm } from "./NewSessionForm";
 
 export const metadata: Metadata = { title: "Einheit anlegen" };
@@ -36,7 +36,7 @@ export default async function NewSessionPage({ searchParams }: PageProps<"/planu
           category: t.category,
           detail:
             t.category === "strength"
-              ? `${t.exercises.length} Übungen`
+              ? exercisesLabel(t.exercises.length)
               : [t.activity, t.default_distance_km ? `${formatDecimal(t.default_distance_km, 2)} km` : null].filter(Boolean).join(", "),
         }))}
       />

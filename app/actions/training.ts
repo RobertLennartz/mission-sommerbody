@@ -470,6 +470,11 @@ export async function saveSessionAsTemplate(sessionId: string, _prev: TemplateSt
         ),
       "Vorlage speichern",
     );
+    // A free session still has the automatic title: it takes the new name.
+    if (!session.template_id && session.title === "Kraft") {
+      check(await db().from("sessions").update({ title: name.value, template_id: inserted.data.id }).eq("id", session.id), "Titel übernehmen");
+      refresh();
+    }
     return { created: { id: inserted.data.id, name: name.value } };
   } catch (error) {
     if (error instanceof InputError) return { error: error.message };
