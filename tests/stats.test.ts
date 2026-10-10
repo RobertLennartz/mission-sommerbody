@@ -56,6 +56,11 @@ describe("weekGoal", () => {
     expect(weekGoal(sessions, "2026-10-12", 5)).toEqual({ training: { done: 3, target: 5 }, recovery: 1 });
   });
 
+  it("does not count easy rides and walks, neither as training nor as recovery", () => {
+    const withLight = [...sessions, { category: "light" as const, status: "done" as const, date: "2026-10-12" }];
+    expect(weekGoal(withLight, "2026-10-12", 5)).toEqual({ training: { done: 3, target: 5 }, recovery: 1 });
+  });
+
   it("scales the target in the short final week", () => {
     expect(weekGoal([], "2026-11-09", 5)).toEqual({ training: { done: 0, target: 4 }, recovery: 0 });
   });

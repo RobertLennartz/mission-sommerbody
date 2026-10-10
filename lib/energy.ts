@@ -11,9 +11,13 @@
  *   Only the part above rest (MET - 1) enters the balance, the resting part is
  *   already in the BMR. Running with km: ACSM running equation, net about
  *   1 kcal per kg and km.
+ * - Easy movement ("locker", 10.10.2026): bike 3.5 MET (Compendium 01210,
+ *   stationary 25-30 W, very light to light). Walking like the steps, net
+ *   0.5 kcal per kg and km; without km 4.5 km/h is assumed (Compendium 17352
+ *   puts 4.0 to 4.7 km/h at 3.5 MET).
  * - Steps: ACSM walking equation, net about 0.5 kcal per kg and km; stride
- *   from height (0.415 x height). Run km are subtracted so a run is not
- *   counted twice.
+ *   from height (0.415 x height). Run km and walk km are subtracted so they
+ *   are not counted twice (the phone counts treadmill steps too).
  * - 1 kg body fat is about 7,700 kcal (rule of thumb).
  */
 
@@ -25,13 +29,14 @@ export const KCAL_PER_KG_FAT = 7700;
 const DIGESTION_FACTOR = 1.1;
 const WALK_NET_KCAL_PER_KG_KM = 0.5;
 const RUN_NET_KCAL_PER_KG_KM = 1.0;
+const WALK_ASSUMED_KMH = 4.5;
 
 export function bmrMifflin(input: { weightKg: number; heightCm: number; age: number; sex: Sex }): number {
   const base = 10 * input.weightKg + 6.25 * input.heightCm - 5 * input.age;
   return base + (input.sex === "male" ? 5 : -161);
 }
 
-type Kind = "strength" | "running" | "spinning" | "swimming" | "hiit" | "cardio" | "recovery";
+type Kind = "strength" | "running" | "spinning" | "swimming" | "hiit" | "cardio" | "recovery" | "walking" | "light";
 
 /** MET (gross) and default minutes when no duration was entered. */
 const PROFILE: Record<Kind, { met: number; minutes: number; label: string }> = {
@@ -42,6 +47,8 @@ const PROFILE: Record<Kind, { met: number; minutes: number; label: string }> = {
   hiit: { met: 7.0, minutes: 45, label: "HIIT, 7,0 MET" }, // Compendium 02210
   cardio: { met: 7.0, minutes: 45, label: "Ausdauer, 7,0 MET" },
   recovery: { met: 1.0, minutes: 0, label: "Recovery" },
+  walking: { met: 3.5, minutes: 20, label: "Gehen" }, // net per km, see walkingKm
+  light: { met: 3.5, minutes: 20, label: "locker, 3,5 MET" }, // Compendium 01210
 };
 
 export function sessionKind(s: { category: Category; activity: string | null; title: string }): Kind {
@@ -49,6 +56,8 @@ export function sessionKind(s: { category: Category; activity: string | null; ti
   if (s.category === "recovery") return "recovery";
   if (s.category === "hiit") return "hiit";
   const text = `${s.activity ?? ""} ${s.title}`.toLowerCase();
+  // "Laufband" in an easy session means walking on it, not running.
+  if (s.category === "light") return /geh|walk|spazier|lauf/.test(text) ? "walking" : "light";
   if (/lauf|jogg|run/.test(text)) return "running";
   if (/spinning|rad|bike|cycl/.test(text)) return "spinning";
   if (/schwimm|swim/.test(text)) return "swimming";
@@ -74,6 +83,18 @@ export function sessionEnergy(
   if (kind === "recovery") return { grossKcal: 0, netKcal: 0, minutes: 0, assumedDuration: false, basis: profile.label };
 
   const km = s.distance_km && s.distance_km > 0 ? s.distance_km : null;
+  if (kind === "walking") {
+    const minutes = s.duration_sec ? s.duration_sec / 60 : km !== null ? (km / WALK_ASSUMED_KMH) * 60 : profile.minutes;
+    const walked = walkingKm(s);
+    const net = WALK_NET_KCAL_PER_KG_KM * weightKg * walked;
+    return {
+      grossKcal: net + (weightKg * minutes) / 60,
+      netKcal: net,
+      minutes,
+      assumedDuration: !s.duration_sec && km === null,
+      basis: km !== null ? `Gehen, ${km.toLocaleString("de-DE")} km (ACSM)` : "Gehen, 4,5 km/h angenommen (ACSM)",
+    };
+  }
   if (kind === "running" && km !== null) {
     const net = RUN_NET_KCAL_PER_KG_KM * weightKg * km;
     // Resting share for the time spent; without a duration assume 6 min per km.
@@ -101,7 +122,28 @@ export function sessionEnergy(
   };
 }
 
-/** Walking from steps, net of rest; run km are taken out so they do not count twice. */
+type KmSession = { category: Category; activity: string | null; title: string; duration_sec: number | null; distance_km: number | null };
+
+/** km of a walking session: entered, or from the duration at 4.5 km/h. */
+function walkingKm(s: KmSession): number {
+  if (s.distance_km && s.distance_km > 0) return s.distance_km;
+  const minutes = s.duration_sec ? s.duration_sec / 60 : PROFILE.walking.minutes;
+  return (minutes / 60) * WALK_ASSUMED_KMH;
+}
+
+/** km the done sessions already count and the steps would count again: runs with km, walks. */
+export function sessionStepKm(sessions: (KmSession & { status: string })[]): number {
+  return sessions
+    .filter((s) => s.status === "done")
+    .reduce((sum, s) => {
+      const kind = sessionKind(s);
+      if (kind === "running") return sum + (s.distance_km ?? 0);
+      if (kind === "walking") return sum + walkingKm(s);
+      return sum;
+    }, 0);
+}
+
+/** Walking from steps, net of rest; run and walk km are taken out so they do not count twice. */
 export function stepsKcal(steps: number, weightKg: number, heightCm: number | null, runKm = 0): number {
   const strideM = heightCm ? heightCm * 0.00415 : 0.75;
   const km = Math.max(0, (steps * strideM) / 1000 - runKm);
@@ -131,10 +173,7 @@ export function dayEnergy(input: {
 }): DayEnergy {
   const done = input.sessions.filter((s) => s.status === "done");
   const training = done.reduce((sum, s) => sum + sessionEnergy(s, input.weightKg).netKcal, 0);
-  const runKm = done
-    .filter((s) => sessionKind(s) === "running")
-    .reduce((sum, s) => sum + (s.distance_km ?? 0), 0);
-  const steps = input.steps ? stepsKcal(input.steps, input.weightKg, input.heightCm, runKm) : 0;
+  const steps = input.steps ? stepsKcal(input.steps, input.weightKg, input.heightCm, sessionStepKm(done)) : 0;
   const digestion = input.bmr * (DIGESTION_FACTOR - 1);
   const total = input.bmr + digestion + steps + training;
   return {

@@ -18,7 +18,7 @@ export function EnergyCard({
   trainingCount,
   weightKg,
   heightCm,
-  runKm,
+  stepKm,
   initialSteps,
   initialIntake,
 }: {
@@ -28,7 +28,8 @@ export function EnergyCard({
   trainingCount: number;
   weightKg: number;
   heightCm: number | null;
-  runKm: number;
+  /** km already counted by runs and walks, taken out of the steps. */
+  stepKm: number;
   initialSteps: number | null;
   initialIntake: number | null;
 }) {
@@ -46,7 +47,7 @@ export function EnergyCard({
     };
   }, []);
 
-  const walk = steps ? stepsKcal(steps, weightKg, heightCm, runKm) : 0;
+  const walk = steps ? stepsKcal(steps, weightKg, heightCm, stepKm) : 0;
   const total = bmr + digestion + walk + training;
   const balance = intake === null ? null : total - intake;
   const r = (n: number) => formatInt(Math.round(n));
@@ -76,13 +77,18 @@ export function EnergyCard({
           <dd className="text-right">{r(digestion)}</dd>
           <dt className="text-mute">Schritte</dt>
           <dd className="text-right">{r(walk)}</dd>
-          <dt className="text-mute">Training{trainingCount ? ` (${trainingCount})` : ""}</dt>
+          <dt className="text-mute">Training{trainingCount ? ` (${trainingCount})` : ""}, über Grundumsatz</dt>
           <dd className="text-right">{r(training)}</dd>
           <dt className="t-strong" style={{ borderTop: "1px solid var(--color-line)" }}>Verbrauch</dt>
           <dd className="t-strong text-right" style={{ borderTop: "1px solid var(--color-line)" }}>{r(total)}</dd>
           <dt className="text-mute">Gegessen</dt>
           <dd className="text-right">{intake === null ? "nicht erfasst" : r(intake)}</dd>
         </dl>
+        {training > 0 ? (
+          <p className="text-[13px] text-mute">
+            Training zählt hier nur mit dem Teil über dem Grundumsatz. Was der Körper in der Zeit auch in Ruhe verbraucht hätte, steckt schon im Grundumsatz. Die Einheit selbst zeigt den ganzen Verbrauch.
+          </p>
+        ) : null}
         {intake === null ? (
           <p className="text-[13px] text-mute">Kalorien oben bei Ernährung eintragen, dann rechnet die Bilanz.</p>
         ) : null}

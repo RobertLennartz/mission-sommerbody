@@ -15,6 +15,8 @@ import { datesBetween } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Übersicht" };
 
+const countOf = (byCategory: { c: string; n: number }[], category: string) => byCategory.find((x) => x.c === category)?.n ?? 0;
+
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="flex flex-col gap-0.5 p-3" style={{ border: "1px solid var(--color-line)" }}>
@@ -73,7 +75,8 @@ export default async function OverviewPage() {
     const overallDays = energyFromRange(a, allData, kcalDates);
     const savedAll = totalSaved(overallDays);
     const overallMissing = overallDays.find((d) => d.energy === null)?.missing ?? [];
-    const km = sessions.filter((s) => s.category !== "strength").reduce((sum, s) => sum + (s.distance_km ?? 0), 0);
+    // Easy walks and rides are no endurance training, so their km stay out.
+    const km = sessions.filter((s) => s.category !== "strength" && s.category !== "light").reduce((sum, s) => sum + (s.distance_km ?? 0), 0);
     return {
       athlete: a,
       training: sessions.filter((s) => countsAsTraining(s.category)).length,
@@ -162,7 +165,7 @@ export default async function OverviewPage() {
                   value={last ? `${formatDecimal(last.value, 1, true)} kg` : "offen"}
                   sub={first && last && first.date !== last.date ? `${formatSigned(last.value - first.value)} kg seit ${formatDayShort(first.date)}` : undefined}
                 />
-                <Tile label="Trainings" value={formatInt(p.training)} sub={`plus ${p.byCategory.find((c) => c.c === "recovery")?.n ?? 0} Recovery`} />
+                <Tile label="Trainings" value={formatInt(p.training)} sub={`plus ${countOf(p.byCategory, "recovery")} Recovery${countOf(p.byCategory, "light") ? `, ${countOf(p.byCategory, "light")} locker` : ""}`} />
                 <Tile label="Ausdauer-km" value={formatDecimal(p.km, 1, true)} />
                 <Tile label="Schritte Ø" value={p.stepsAvg.average === null ? "offen" : formatInt(Math.round(p.stepsAvg.average))} sub={`${daysLabel(p.stepsAvg.days)} erfasst`} />
                 <Tile label="Protein Ø" value={p.proteinAvg.average === null ? "offen" : `${formatDecimal(p.proteinAvg.average, 0)} g`} sub={`${daysLabel(p.proteinDays)} erfasst`} />

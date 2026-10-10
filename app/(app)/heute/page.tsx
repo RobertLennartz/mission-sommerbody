@@ -25,7 +25,7 @@ import { QuickLog } from "./QuickLog";
 import { EnergyCard } from "./EnergyCard";
 import { loadRange } from "@/lib/data/range";
 import { energyFromRange, weightOn } from "@/lib/data/energy";
-import { sessionEnergy, sessionKind } from "@/lib/energy";
+import { sessionEnergy, sessionStepKm } from "@/lib/energy";
 import { formatInt } from "@/lib/numbers";
 import { getAthletes } from "@/lib/athletes";
 
@@ -59,9 +59,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
   const weight = weightOn(athlete, range, date);
   const sessionKcal = (sess: (typeof day.sessions)[number]) =>
     weight === null || sess.category === "recovery" ? null : sessionEnergy(sess, weight).grossKcal;
-  const runKm = day.sessions
-    .filter((x) => x.status === "done" && sessionKind(x) === "running")
-    .reduce((sum, x) => sum + (x.distance_km ?? 0), 0);
+  const stepKm = sessionStepKm(day.sessions);
 
   // Remount the forms when person or day changes, so no field shows stale values.
   const k = `${athlete.id}:${date}`;
@@ -121,7 +119,7 @@ export default async function TodayPage({ searchParams }: PageProps<"/heute">) {
           trainingCount={day.sessions.filter((x) => x.status === "done" && x.category !== "recovery").length}
           weightKg={weight!}
           heightCm={athlete.height_cm}
-          runKm={runKm}
+          stepKm={stepKm}
           initialSteps={day.log?.steps ?? null}
           initialIntake={energyDay.energy.intake}
         />

@@ -36,7 +36,7 @@ export function averageOfPresent(values: (number | null | undefined)[]): { avera
 
 export type GoalProgress = { done: number; target: number };
 
-/** Done trainings of any kind against one weekly target; recovery is counted separately. */
+/** Done trainings against one weekly target; recovery is counted separately, easy movement not at all. */
 export function weekGoal(
   sessions: { category: Category; status: SessionStatus; date: IsoDate }[],
   monday: IsoDate,
@@ -45,7 +45,7 @@ export function weekGoal(
   const done = sessions.filter((s) => s.status === "done");
   return {
     training: { done: done.filter((s) => countsAsTraining(s.category)).length, target: weeklyTarget(target, monday) },
-    recovery: done.filter((s) => !countsAsTraining(s.category)).length,
+    recovery: done.filter((s) => s.category === "recovery").length,
   };
 }
 

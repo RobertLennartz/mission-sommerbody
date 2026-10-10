@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bmrMifflin, dayEnergy, energyPerDay, fatEquivalentLabel, sessionEnergy, sessionKind, stepsKcal, totalSaved } from "@/lib/energy";
+import { bmrMifflin, dayEnergy, energyPerDay, fatEquivalentLabel, sessionEnergy, sessionKind, sessionStepKm, stepsKcal, totalSaved } from "@/lib/energy";
 
 describe("Mifflin-St Jeor", () => {
   it("matches the standard worked example (30 y, 80 kg, 180 cm, man)", () => {
@@ -129,5 +129,47 @@ describe("fat equivalent", () => {
   it("shows grams below a kilogram and kilograms above", () => {
     expect(fatEquivalentLabel(90)).toBe("≈ 12 g Fett");
     expect(fatEquivalentLabel(10780)).toBe("≈ 1,4 kg Fett");
+  });
+});
+
+describe("easy movement (locker)", () => {
+  it("separates easy rides and walks from spinning and running", () => {
+    expect(sessionKind({ category: "light", activity: "Lockeres Radfahren", title: "Lockeres Radfahren" })).toBe("light");
+    expect(sessionKind({ category: "light", activity: "Gehen", title: "Gehen" })).toBe("walking");
+    expect(sessionKind({ category: "light", activity: null, title: "Laufband locker" })).toBe("walking");
+    // The same words in an endurance session stay what they were.
+    expect(sessionKind({ category: "cardio", activity: "Spinning", title: "Rad" })).toBe("spinning");
+  });
+
+  it("easy ride at 90 kg for 20 min: 3.5 MET instead of 9.0 for spinning", () => {
+    const light = sessionEnergy({ ...base, category: "light", activity: "Lockeres Radfahren", title: "Lockeres Radfahren", duration_sec: 1200 }, 90);
+    expect(light.grossKcal).toBeCloseTo(105, 5); // 3.5 * 90 * 1/3
+    expect(light.netKcal).toBeCloseTo(75, 5); // 2.5 * 90 * 1/3
+    const spinning = sessionEnergy({ ...base, category: "cardio", activity: "Spinning", title: "Spinning", duration_sec: 1200 }, 90);
+    expect(spinning.netKcal).toBeCloseTo(240, 5); // 8.0 * 90 * 1/3
+  });
+
+  it("walk without km: 4.5 km/h assumed, 0.5 kcal per kg and km above rest", () => {
+    const e = sessionEnergy({ ...base, category: "light", activity: "Gehen", title: "Gehen", duration_sec: 1800 }, 90);
+    expect(e.netKcal).toBeCloseTo(0.5 * 90 * 2.25, 5);
+    expect(e.grossKcal).toBeCloseTo(0.5 * 90 * 2.25 + 45, 5);
+    expect(e.assumedDuration).toBe(false);
+  });
+
+  it("walk with km uses the km", () => {
+    const e = sessionEnergy({ ...base, category: "light", activity: "Gehen", title: "Gehen", duration_sec: 2400, distance_km: 3 }, 80);
+    expect(e.netKcal).toBe(120);
+  });
+
+  it("takes walk km out of the steps so the treadmill is not counted twice", () => {
+    const walk = { ...base, category: "light" as const, activity: "Gehen", title: "Gehen", duration_sec: 1800, status: "done" };
+    const run = { ...base, category: "cardio" as const, activity: "Laufen", title: "Laufen", distance_km: 5, status: "done" };
+    const planned = { ...walk, status: "planned" };
+    expect(sessionStepKm([walk, run, planned])).toBeCloseTo(2.25 + 5, 5);
+
+    const withWalk = dayEnergy({ bmr: 1800, weightKg: 90, heightCm: 183, steps: 10000, sessions: [walk], intakeKcal: null });
+    const without = dayEnergy({ bmr: 1800, weightKg: 90, heightCm: 183, steps: 10000, sessions: [], intakeKcal: null });
+    // Same distance walked either way: the walk moves from "steps" to "training", the total stays.
+    expect(withWalk.steps + withWalk.training).toBeCloseTo(without.steps, 5);
   });
 });

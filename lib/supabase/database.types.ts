@@ -84,7 +84,7 @@ export type MealRow = Base & {
 
 export type ExerciseRow = Base & { name: string };
 
-export type Category = "strength" | "cardio" | "hiit" | "recovery";
+export type Category = "strength" | "cardio" | "hiit" | "recovery" | "light";
 export type SessionStatus = "planned" | "done" | "skipped";
 
 export type PlanTemplateRow = Base & {

@@ -13,7 +13,7 @@ import { check, db, unwrap } from "@/lib/supabase/server";
 import { lastPerformances } from "@/lib/data/training";
 import type { Category, PlanTemplateExerciseRow, PlanTemplateRow, SessionRow, SessionSetRow } from "@/lib/supabase/database.types";
 
-const CATEGORIES = ["strength", "cardio", "hiit", "recovery"] as const;
+const CATEGORIES = ["strength", "cardio", "hiit", "recovery", "light"] as const;
 const STATUSES = ["planned", "done", "skipped"] as const;
 
 function toResult(error: unknown): SaveResult {
@@ -84,11 +84,11 @@ export async function quickLogSession(athleteId: string, date: string, category:
   await guard();
   const athlete = await requireAthlete(athleteId);
   const day = requireDate(date);
-  const cat = oneOf(category, ["strength", "cardio", "hiit", "recovery"] as const, "Kategorie");
+  const cat = oneOf(category, CATEGORIES, "Kategorie");
   const act = activity ? parseText(activity, TEXT_MAX.activity) : null;
   if (act && !act.ok) throw new InputError(act.error);
   const ids = await athleteGroup(athlete.id, withIds);
-  const title = act?.ok && act.value ? act.value : cat === "strength" ? "Kraft" : cat === "hiit" ? "HIIT" : cat === "recovery" ? "Recovery" : "Ausdauer";
+  const title = act?.ok && act.value ? act.value : cat === "strength" ? "Kraft" : cat === "hiit" ? "HIIT" : cat === "recovery" ? "Recovery" : cat === "light" ? "Locker" : "Ausdauer";
   const created = unwrap(
     await db().rpc("create_sessions", { p_athletes: ids, p_date: day, p_status: "done", p_template: null, p_category: cat, p_title: title }),
     "Einheit anlegen",

@@ -155,7 +155,7 @@ export default async function WeekPage({ searchParams }: PageProps<"/woche">) {
       </div>
 
       <p className="t-label t-label-sm text-mute">
-        K = Kraft, A = Ausdauer, H = HIIT, R = Recovery · gefüllt = erledigt, Rahmen = geplant, grau = ausgelassen
+        K = Kraft, A = Ausdauer, H = HIIT, L = Locker, R = Recovery · gefüllt = erledigt, Rahmen = geplant, grau = ausgelassen
       </p>
     </div>
   );

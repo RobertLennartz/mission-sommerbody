@@ -20,6 +20,7 @@ import { SessionDock } from "./SessionDock";
 export const metadata: Metadata = { title: "Einheit" };
 
 const UUID = /^[0-9a-f-]{36}$/i;
+const round10 = (n: number) => Math.round(n / 10) * 10;
 
 function lastText(last: LastPerformance | undefined): string | null {
   if (!last) return null;
@@ -81,9 +82,9 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
         <p className="t-num px-3 py-2 text-[13px]" style={{ background: "var(--color-paper)" }}>
           {energy ? (
             <>
-              Verbrauch geschätzt <strong>≈ {formatInt(Math.round(energy.grossKcal / 10) * 10)} kcal</strong>, davon ≈{" "}
-              {formatInt(Math.round(energy.netKcal / 10) * 10)} über dem Grundumsatz · {energy.basis}, {formatInt(Math.round(energy.minutes))} min
-              {energy.assumedDuration ? " (Dauer angenommen, unten eintragen)" : ""}
+              Verbrauch geschätzt <strong>≈ {formatInt(round10(energy.grossKcal))} kcal</strong> ({energy.basis}, {formatInt(Math.round(energy.minutes))} min
+              {energy.assumedDuration ? ", Dauer angenommen, unten eintragen" : ""}). In der Energiebilanz zählen davon ≈ {formatInt(round10(energy.netKcal))} kcal,
+              die übrigen ≈ {formatInt(round10(energy.grossKcal) - round10(energy.netKcal))} kcal hätte der Körper in der Zeit auch in Ruhe verbraucht (steckt im Grundumsatz).
             </>
           ) : (
             "Für eine Verbrauchsschätzung fehlt ein Gewicht (Morgengewicht oder Checkup)."
