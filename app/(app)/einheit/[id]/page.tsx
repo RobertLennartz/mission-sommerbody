@@ -7,7 +7,7 @@ import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { getAthletes, requireSelectedAthlete } from "@/lib/athletes";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { getExercises, getSession, lastPerformances, type LastPerformance } from "@/lib/data/training";
-import { formatDayLong, formatDayShort } from "@/lib/dates";
+import { berlinToday, formatDayLong, formatDayShort } from "@/lib/dates";
 import { formatDecimal, joinNames } from "@/lib/numbers";
 import { pairPartners } from "@/lib/data/day";
 import { loadRange } from "@/lib/data/range";
@@ -15,6 +15,7 @@ import { weightOn } from "@/lib/data/energy";
 import { sessionEnergy } from "@/lib/energy";
 import { formatInt } from "@/lib/numbers";
 import { AddExerciseForm, ExerciseBlock, RpeButtons, SaveAsTemplateForm, SessionBasics, StatusButtons, TrainingNumbers } from "./SessionForms";
+import { SessionDock } from "./SessionDock";
 
 export const metadata: Metadata = { title: "Einheit" };
 
@@ -25,7 +26,7 @@ function lastText(last: LastPerformance | undefined): string | null {
   const sets = last.sets
     .map((s) => `${s.reps ?? "?"} × ${s.weight_kg === null ? "?" : formatDecimal(s.weight_kg, 2)}`)
     .join(" · ");
-  return `Letztes Mal (${formatDayShort(last.date)}): ${sets} kg`;
+  return `Letztes Mal (${formatDayShort(last.date)}): ${sets} kg${last.note ? ` · Notiz: ${last.note}` : ""}`;
 }
 
 export default async function SessionPage({ params }: PageProps<"/einheit/[id]">) {
@@ -108,6 +109,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
                   sets: e.sets,
                   last: lastText(last.get(e.exercise_id)),
                   lastSets: last.get(e.exercise_id)?.sets ?? [],
+                  note: e.notes,
                 }}
               />
             ))}
@@ -130,6 +132,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
         <div className="flex flex-col gap-4 p-4">
           {session.category !== "recovery" ? (
           <TrainingNumbers
+            key={`numbers:${session.duration_sec}`}
             id={session.id}
             withDistance={session.category !== "strength"}
             duration={session.duration_sec}
@@ -144,6 +147,16 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
       </section>
 
       <StatusButtons id={session.id} status={session.status} />
+
+      {session.category !== "recovery" ? (
+        <SessionDock
+          id={session.id}
+          startedAt={session.started_at}
+          endedAt={session.ended_at}
+          isToday={session.date === berlinToday()}
+          restCategory={session.category === "strength" || session.category === "hiit"}
+        />
+      ) : null}
     </div>
   );
 }

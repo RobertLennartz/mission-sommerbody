@@ -60,7 +60,12 @@ export async function getSession(id: string): Promise<{ session: SessionRow; exe
   };
 }
 
-export type LastPerformance = { date: string; sets: { set_no: number; reps: number | null; weight_kg: number | null }[] };
+export type LastPerformance = {
+  date: string;
+  sets: { set_no: number; reps: number | null; weight_kg: number | null }[];
+  /** Exercise note of that session, e.g. "mit Band". */
+  note: string | null;
+};
 
 /**
  * Most recent done session of the same person that contains the exercise,
@@ -93,16 +98,16 @@ export async function lastPerformances(
   const exRows = unwrap(
     await db()
       .from("session_exercises")
-      .select("id, session_id, exercise_id")
+      .select("id, session_id, exercise_id, notes")
       .in("session_id", sessions.map((s) => s.id))
       .in("exercise_id", exerciseIds),
     "Letzte Übungen laden",
   );
-  const best = new Map<string, { rowId: string; rank: number; sessionId: string }>();
+  const best = new Map<string, { rowId: string; rank: number; sessionId: string; note: string | null }>();
   for (const row of exRows) {
     const rank = order.get(row.session_id) ?? Infinity;
     const current = best.get(row.exercise_id);
-    if (!current || rank < current.rank) best.set(row.exercise_id, { rowId: row.id, rank, sessionId: row.session_id });
+    if (!current || rank < current.rank) best.set(row.exercise_id, { rowId: row.id, rank, sessionId: row.session_id, note: row.notes });
   }
   if (best.size === 0) return result;
   const sets = unwrap(
@@ -115,7 +120,7 @@ export async function lastPerformances(
   );
   for (const [exerciseId, b] of best) {
     const own = sets.filter((s) => s.session_exercise_id === b.rowId && (s.reps !== null || s.weight_kg !== null));
-    if (own.length) result.set(exerciseId, { date: dateOf.get(b.sessionId)!, sets: own });
+    if (own.length) result.set(exerciseId, { date: dateOf.get(b.sessionId)!, sets: own, note: b.note });
   }
   return result;
 }

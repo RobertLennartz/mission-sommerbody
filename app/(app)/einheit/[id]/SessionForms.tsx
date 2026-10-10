@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useId, useState, useTransition } from "react";
+import { useActionState, useId, useOptimistic, useState, useTransition } from "react";
 import { AutosaveNumber } from "@/components/form/AutosaveNumber";
 import { AutosaveText } from "@/components/form/AutosaveText";
 import { SaveStatusText } from "@/components/form/SaveStatusText";
@@ -12,6 +12,7 @@ import {
   saveSessionAsTemplate,
   type TemplateState,
   removeSessionExercise,
+  saveExerciseNote,
   saveSessionField,
   saveSet,
   setSessionStatus,
@@ -21,28 +22,52 @@ import {
 import { FIELDS, TEXT_MAX, parseField } from "@/lib/fields";
 import { formatDecimal, toInputValue } from "@/lib/numbers";
 import { formatDuration, formatPace, paceSecPerKm, parseDuration, speedKmh, validateDuration } from "@/lib/duration";
+import { STATUS_LABEL } from "@/lib/categories";
 import type { SessionStatus } from "@/lib/supabase/database.types";
 
+const STATUS_ORDER: SessionStatus[] = ["planned", "done", "skipped"];
+const STATUS_ACTIVE: Record<SessionStatus, { background: string; color: string }> = {
+  planned: { background: "var(--color-ink)", color: "var(--color-bg)" },
+  done: { background: "var(--color-good)", color: "#FFFFFF" },
+  skipped: { background: "var(--color-bad)", color: "#FFFFFF" },
+};
+
+/**
+ * All three states side by side, the current one filled. Before, "Erledigt"
+ * was only a button while the session was not done yet, so quick-logged
+ * sessions (already done) showed no way to see or set it.
+ */
 export function StatusButtons({ id, status }: { id: string; status: SessionStatus }) {
+  const [shown, setShown] = useOptimistic(status);
   const [pending, startTransition] = useTransition();
+  const labelId = useId();
   return (
-    <div className="flex flex-col gap-2" aria-busy={pending}>
-      {status !== "done" ? (
-        <button type="button" className="btn btn-primary min-h-[56px] text-[15px]" disabled={pending} onClick={() => startTransition(() => setSessionStatus(id, "done"))}>
-          Als erledigt markieren
-        </button>
-      ) : null}
-      <div className="grid grid-cols-2 gap-2">
-        {status !== "skipped" ? (
-          <button type="button" className="btn btn-sm" disabled={pending} onClick={() => startTransition(() => setSessionStatus(id, "skipped"))}>
-            Ausgelassen
-          </button>
-        ) : null}
-        {status !== "planned" ? (
-          <button type="button" className="btn btn-sm" disabled={pending} onClick={() => startTransition(() => setSessionStatus(id, "planned"))}>
-            Zurück auf geplant
-          </button>
-        ) : null}
+    <div className="flex flex-col gap-1.5" aria-busy={pending}>
+      <span className="t-label" id={labelId}>
+        Status
+      </span>
+      <div className="grid grid-cols-3" role="group" aria-labelledby={labelId}>
+        {STATUS_ORDER.map((s, i) => {
+          const active = shown === s;
+          return (
+            <button
+              key={s}
+              type="button"
+              aria-pressed={active}
+              className="btn min-h-[52px] px-1 text-[13px]"
+              style={{ ...(active ? STATUS_ACTIVE[s] : undefined), marginLeft: i > 0 ? -1.5 : undefined }}
+              onClick={() => {
+                if (active) return;
+                startTransition(async () => {
+                  setShown(s);
+                  await setSessionStatus(id, s);
+                });
+              }}
+            >
+              {STATUS_LABEL[s]}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -263,6 +288,7 @@ export type ExerciseView = {
   last: string | null;
   /** Sets of the last done session with this exercise: shown grey as placeholders. */
   lastSets: { set_no: number; reps: number | null; weight_kg: number | null }[];
+  note: string | null;
 };
 
 export function ExerciseBlock({ exercise }: { exercise: ExerciseView }) {
@@ -328,6 +354,14 @@ export function ExerciseBlock({ exercise }: { exercise: ExerciseView }) {
           );
         })}
       </div>
+      <AutosaveText
+        label="Notiz zur Übung"
+        initial={exercise.note ?? ""}
+        max={TEXT_MAX.exerciseNote}
+        draftKey={`ms:exercise:${exercise.id}:note`}
+        placeholder="z. B. Satz 3 mit Band"
+        save={(v) => saveExerciseNote(exercise.id, v)}
+      />
       <div className="flex flex-wrap gap-2">
         {canCopy ? (
           <button

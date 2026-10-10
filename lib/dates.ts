@@ -17,6 +17,18 @@ const berlinDayFormat = new Intl.DateTimeFormat("en-CA", {
   day: "2-digit",
 });
 
+const berlinTimeFormat = new Intl.DateTimeFormat("de-DE", {
+  timeZone: TZ,
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** "07:05" in Berlin time, for a timestamp from the database. */
+export function formatBerlinTime(iso: string): string {
+  return berlinTimeFormat.format(new Date(iso));
+}
+
 /** Today's date in Berlin, independent of the server's time zone. */
 export function berlinToday(now: Date = new Date()): IsoDate {
   return berlinDayFormat.format(now);

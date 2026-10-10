@@ -6,6 +6,7 @@ import { getAthletes } from "@/lib/athletes";
 import { getCheckups } from "@/lib/data/checkups";
 import { CHECKUP_TYPE_LABEL, CIRCUMFERENCES } from "@/lib/measurements";
 import { db, unwrap } from "@/lib/supabase/server";
+import { formatBerlinTime } from "@/lib/dates";
 import { formatDuration, formatPace, paceSecPerKm, speedKmh } from "@/lib/duration";
 
 function round(n: number | null, digits: number): number | null {
@@ -48,7 +49,7 @@ export async function buildExport(name: ExportName): Promise<string> {
   if (name === "einheiten") {
     const rows = await all(db().from("sessions").select("*").order("date").order("slot"), "Einheiten");
     return toCsv(
-      ["Datum", "Reihenfolge", "Person", "Kategorie", "Titel", "Status", "Dauer (h:mm:ss)", "Dauer min", "RPE", "Aktivität", "Distanz km", "Pace min/km", "km/h", "Puls Ø", "Gemeinsam", "Notiz"],
+      ["Datum", "Reihenfolge", "Person", "Kategorie", "Titel", "Status", "Dauer (h:mm:ss)", "Dauer min", "RPE", "Aktivität", "Distanz km", "Pace min/km", "km/h", "Puls Ø", "Gemeinsam", "Notiz", "Timer Start", "Timer Ende"],
       rows.map((r) => [
         r.date, r.slot, who(r.athlete_id), CATEGORY_LABEL[r.category], r.title, STATUS_LABEL[r.status],
         r.duration_sec === null ? null : formatDuration(r.duration_sec),
@@ -57,13 +58,15 @@ export async function buildExport(name: ExportName): Promise<string> {
         paceSecPerKm(r.duration_sec, r.distance_km) === null ? null : formatPace(paceSecPerKm(r.duration_sec, r.distance_km)!).replace(" min/km", ""),
         speedKmh(r.duration_sec, r.distance_km) === null ? null : round(speedKmh(r.duration_sec, r.distance_km)!, 1),
         r.avg_hr, r.pair_id !== null, r.notes,
+        r.started_at === null ? null : formatBerlinTime(r.started_at),
+        r.ended_at === null ? null : formatBerlinTime(r.ended_at),
       ]),
     );
   }
   if (name === "saetze") {
     const [sessions, exercises, sets, names] = await Promise.all([
       all(db().from("sessions").select("id, date, slot, athlete_id, title, status"), "Einheiten"),
-      all(db().from("session_exercises").select("id, session_id, position, exercise_id"), "Übungen"),
+      all(db().from("session_exercises").select("id, session_id, position, exercise_id, notes"), "Übungen"),
       all(db().from("session_sets").select("*").order("set_no"), "Sätze"),
       all(db().from("exercises").select("id, name"), "Übungsnamen"),
     ]);
@@ -76,10 +79,10 @@ export async function buildExport(name: ExportName): Promise<string> {
       .filter((x) => x.e && x.sess)
       .sort((a, b) => (a.sess!.date + a.sess!.slot + a.e!.position).localeCompare(b.sess!.date + b.sess!.slot + b.e!.position) || a.s.set_no - b.s.set_no);
     return toCsv(
-      ["Datum", "Person", "Einheit", "Status", "Übung", "Satz", "Wiederholungen", "Gewicht kg"],
+      ["Datum", "Person", "Einheit", "Status", "Übung", "Satz", "Wiederholungen", "Gewicht kg", "Notiz Übung"],
       rows.map(({ s, e, sess }) => [
         sess!.date, who(sess!.athlete_id), sess!.title, STATUS_LABEL[sess!.status], names.find((n) => n.id === e!.exercise_id)?.name ?? "",
-        s.set_no, s.reps, s.weight_kg,
+        s.set_no, s.reps, s.weight_kg, e!.notes,
       ]),
     );
   }

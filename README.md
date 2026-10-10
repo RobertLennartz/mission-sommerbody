@@ -35,7 +35,8 @@ npm install
    5. `supabase/migrations/0005_duration_seconds.sql`
    6. `supabase/migrations/0006_daily_nutrition_totals.sql`
    7. `supabase/migrations/0007_third_person.sql`
-   8. `supabase/seed.sql` (Robert, Eddie, Anny, Übungen, Vorlagen, Standardwoche; mehrfach ausführbar)
+   8. `supabase/migrations/0008_session_clock.sql`
+   9. `supabase/seed.sql` (Robert, Eddie, Anny, Übungen, Vorlagen, Standardwoche; mehrfach ausführbar)
 3. Unter **Settings > API Keys** den Secret Key (`sb_secret_...`) kopieren.
 
 Die Migrationen schalten RLS auf allen Tabellen ein und geben nur der Rolle `service_role` Rechte. Mit dem öffentlichen Key ist nichts lesbar.
@@ -78,10 +79,18 @@ Neu einrichten, falls nötig:
 ## Was die App kann
 
 - **Heute:** "Was habt ihr gemacht?" per Antippen (Kraft, Laufen, Schwimmen, Spinning, HIIT, Recovery (Sauna, Eisbad, Massage, mehrere auf einmal, ohne Zeit)), auch mehrere Trainings am Tag und für beide zugleich. Schritte, Morgengewicht, Schlaf, Energie, Protein und Kalorien als grober Tageswert (gilt vor der Summe der Mahlzeiten) oder einzeln pro Mahlzeit, Proteinziel, Bemerkungen. Alles speichert automatisch.
-- **Einheit:** Kraft mit eigenen Übungen und Sätzen, der letzte Wert derselben Übung steht als Referenz daneben. Ausdauer mit Dauer (45, 26:40 oder 1:05:30) und km, der Schnitt (min/km, km/h) wird berechnet.
+- **Einheit:** Kraft mit eigenen Übungen und Sätzen, der letzte Wert derselben Übung steht als Referenz daneben, dazu eine Notiz pro Übung (z. B. "Satz 3 mit Band"), die beim nächsten Mal unter "Letztes Mal" steht. Ausdauer mit Dauer (45, 26:40 oder 1:05:30) und km, der Schnitt (min/km, km/h) wird berechnet. Status Geplant, Erledigt oder Ausgelassen per Antippen.
+- **Trainingszeit und Pause:** Leiste unten auf der Einheit. "Starten" speichert die Startzeit in der Datenbank (läuft weiter, auch wenn die App zu ist), "Beenden" trägt die Zeit als Dauer ein und setzt die Einheit auf erledigt. Pausen-Timer 1:00, 1:30, 2:00, 3:00 mit Ton und Vibration, solange die App offen ist.
 - **Woche, Planung, Vorlagen:** optional planen, Woche aus Vorlage füllen, verschieben. Ein Wochenziel für alle Trainings, Recovery zählt extra.
 - **Ernährung, Checkups, Übersicht:** Protein pro Tag und Woche, Körperfett nach Jackson/Pollock mit Start-gegen-Ende-Vergleich, Verläufe.
 - **Export:** CSV und ZIP unter Einstellungen.
+
+## Auf dem Home-Bildschirm
+
+- **iPhone:** Seite in Safari öffnen, Teilen, "Zum Home-Bildschirm". Danach über das Icon starten und dort einmal anmelden (die Home-Bildschirm-App hat eigene Cookies).
+- **Android:** Seite in Chrome öffnen, Menü, "App installieren".
+
+Icons: `app/apple-icon.png` (iOS) und `public/icons/` (Manifest). Nach einer Logo-Änderung in `app/icon.svg` neu erzeugen mit `node scripts/icons.mjs`.
 
 ## Backup
 

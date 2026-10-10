@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { FIELDS, TEXT_MAX, parseField, parseText } from "@/lib/fields";
 import { InputError, guard, oneOf, requireAthlete, requireDate, requireUuid } from "@/lib/data/guard";
 import { isIsoDate, startOfIsoWeek } from "@/lib/dates";
-import { parseDuration, validateDuration } from "@/lib/duration";
+import { MAX_DURATION_SEC, parseDuration, validateDuration } from "@/lib/duration";
 import { MISSION_END, MISSION_START } from "@/lib/mission";
 import { RECOVERY_OPTIONS } from "@/lib/categories";
 import { invalid, saved, type SaveResult } from "@/lib/save-result";
@@ -251,6 +251,44 @@ export async function setSessionStatus(id: string, status: string): Promise<void
   refresh();
 }
 
+const CLOCK_OPS = ["start", "stop", "resume", "reset"] as const;
+
+/**
+ * Training clock. Start and end live in the database, so the clock keeps
+ * running when the app is closed and shows the same time on every phone.
+ * Stopping writes the tracked time as duration and marks the session done.
+ */
+export async function setSessionClock(id: string, op: string): Promise<SaveResult> {
+  try {
+    await guard();
+    const session = await loadSession(id);
+    const action = oneOf(op, CLOCK_OPS, "Aktion");
+    const now = new Date();
+    let update: Partial<SessionRow>;
+    if (action === "start") {
+      // Second tap or the other phone was faster: keep the running clock.
+      if (session.started_at && !session.ended_at) return saved;
+      update = { started_at: now.toISOString(), ended_at: null };
+    } else if (action === "stop") {
+      if (!session.started_at) throw new InputError("Das Training läuft nicht.");
+      if (session.ended_at) return saved;
+      const sec = Math.round((now.getTime() - Date.parse(session.started_at)) / 1000);
+      update = { ended_at: now.toISOString(), duration_sec: Math.min(Math.max(sec, 1), MAX_DURATION_SEC), status: "done" };
+    } else if (action === "resume") {
+      if (!session.started_at) throw new InputError("Das Training wurde noch nicht gestartet.");
+      update = { ended_at: null };
+    } else {
+      // Only the clock goes; a duration saved earlier stays.
+      update = { started_at: null, ended_at: null };
+    }
+    check(await db().from("sessions").update(update).eq("id", session.id), "Zeit speichern");
+    refresh();
+    return saved;
+  } catch (error) {
+    return toResult(error);
+  }
+}
+
 const SESSION_FIELDS = ["title", "duration_sec", "rpe", "activity", "distance_km", "avg_hr", "notes", "date"] as const;
 
 export async function saveSessionField(id: string, field: string, raw: string): Promise<SaveResult> {
@@ -465,6 +503,20 @@ export async function saveSet(sessionExerciseId: string, setNo: number, field: s
         .upsert({ session_exercise_id: id, set_no: setNo, ...({ [column]: r.value } as Partial<SessionSetRow>) }, { onConflict: "session_exercise_id,set_no" }),
       "Satz speichern",
     );
+    return saved;
+  } catch (error) {
+    return toResult(error);
+  }
+}
+
+/** Free note per exercise, e.g. "Satz 3 mit Band". */
+export async function saveExerciseNote(sessionExerciseId: string, raw: string): Promise<SaveResult> {
+  try {
+    await guard();
+    const id = requireUuid(sessionExerciseId, "Übung");
+    const r = parseText(raw, TEXT_MAX.exerciseNote);
+    if (!r.ok) throw new InputError(r.error);
+    check(await db().from("session_exercises").update({ notes: r.value }).eq("id", id), "Notiz speichern");
     return saved;
   } catch (error) {
     return toResult(error);

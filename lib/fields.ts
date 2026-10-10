@@ -70,7 +70,7 @@ export function parseField(raw: string, field: NumberField): ParseResult {
   return { ok: true, value: field.kind === "int" ? value : Math.round(value * factor) / factor };
 }
 
-export const TEXT_MAX = { notes: 4000, mealDescription: 500, title: 80, activity: 60, exerciseName: 80, templateName: 60, reps: 20 } as const;
+export const TEXT_MAX = { notes: 4000, mealDescription: 500, title: 80, activity: 60, exerciseName: 80, exerciseNote: 300, templateName: 60, reps: 20 } as const;
 
 export function parseText(raw: string, max: number): { ok: true; value: string | null } | { ok: false; error: string } {
   const value = raw.replace(/\r\n/g, "\n").trim();

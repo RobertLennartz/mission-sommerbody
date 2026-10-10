@@ -128,6 +128,9 @@ export type SessionRow = Base & {
   notes: string | null;
   template_id: string | null;
   pair_id: string | null;
+  /** Training clock: set by "Training starten", cleared by "Abbrechen". */
+  started_at: string | null;
+  ended_at: string | null;
 };
 
 export type SessionExerciseRow = Base & {
@@ -191,6 +194,8 @@ export type Database = {
         | "notes"
         | "template_id"
         | "pair_id"
+        | "started_at"
+        | "ended_at"
       >;
       session_exercises: Table<SessionExerciseRow, "target_sets" | "target_reps" | "notes">;
       session_sets: Table<SessionSetRow, "reps" | "weight_kg">;
