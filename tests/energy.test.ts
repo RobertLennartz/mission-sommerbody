@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bmrMifflin, dayEnergy, energyPerDay, fatEquivalentLabel, sessionEnergy, sessionKind, sessionStepKm, stepsKcal, totalSaved } from "@/lib/energy";
+import { BOXING_CLASS, BOXING_CLASS_MET, bmrMifflin, dayEnergy, energyPerDay, fatEquivalentLabel, sessionEnergy, sessionKind, sessionStepKm, stepsKcal, totalSaved } from "@/lib/energy";
 
 describe("Mifflin-St Jeor", () => {
   it("matches the standard worked example (30 y, 80 kg, 180 cm, man)", () => {
@@ -181,10 +181,18 @@ describe("boxing", () => {
     expect(sessionKind({ category: "cardio", activity: "Laufen", title: "Laufen" })).toBe("running");
   });
 
-  it("one hour at 90 kg: 7.3 MET (Compendium 15457)", () => {
+  it("averages a whole class with breaks, not an hour of nonstop punching", () => {
+    expect(BOXING_CLASS.reduce((sum, p) => sum + p.minutes, 0)).toBe(60);
+    // (10*3.5 + 20*5.3 + 15*7.3 + 10*1.3 + 5*2.3) / 60 = 275 / 60
+    expect(BOXING_CLASS_MET).toBeCloseTo(275 / 60, 10);
+    expect(BOXING_CLASS_MET).toBeLessThan(7.3);
+  });
+
+  it("one hour at 90 kg: about 410 kcal, 320 above rest", () => {
     const e = sessionEnergy({ ...base, category: "cardio", activity: "Boxen / Kickboxen", title: "Boxen / Kickboxen", duration_sec: 3600 }, 90);
-    expect(e.grossKcal).toBeCloseTo(657, 5);
-    expect(e.netKcal).toBeCloseTo(567, 5);
+    expect(e.grossKcal).toBeCloseTo(412.5, 5);
+    expect(e.netKcal).toBeCloseTo(322.5, 5);
+    expect(e.basis).toBe("Boxtraining mit Pausen, Ø 4,6 MET");
   });
 
   it("assumes a 60 minute class without a duration", () => {

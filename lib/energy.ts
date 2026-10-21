@@ -11,9 +11,9 @@
  *   Only the part above rest (MET - 1) enters the balance, the resting part is
  *   already in the BMR. Running with km: ACSM running equation, net about
  *   1 kcal per kg and km.
- * - Boxing and kickboxing (21.10.2026): 7.3 MET, Compendium 15457
- *   "Kickboxing". Between punching bag (15110, 5.8) and sparring (15120, 7.8);
- *   ring fights (15100, 12.3) would overstate a normal class.
+ * - Boxing and kickboxing: a training hour is not an hour of punching
+ *   (Robert, 22.10.2026: warm-up, technique, drinking breaks). Average of a
+ *   typical class built from Compendium phases, see BOXING_CLASS.
  * - Easy movement ("locker", 10.10.2026): bike 3.5 MET (Compendium 01210,
  *   stationary 25-30 W, very light to light). Walking like the steps, net
  *   0.5 kcal per kg and km; without km 4.5 km/h is assumed (Compendium 17352
@@ -32,6 +32,21 @@ export const KCAL_PER_KG_FAT = 7700;
 const DIGESTION_FACTOR = 1.1;
 const WALK_NET_KCAL_PER_KG_KM = 0.5;
 const RUN_NET_KCAL_PER_KG_KM = 1.0;
+
+/**
+ * A typical 60 minute boxing or kickboxing class, phase by phase. The time
+ * weighted average is used for any duration (about 4.6 MET instead of 7.3 for
+ * nonstop kickboxing, Compendium 15457).
+ */
+export const BOXING_CLASS: { minutes: number; met: number; what: string }[] = [
+  { minutes: 10, met: 3.5, what: "warm-up (Compendium 02030, calisthenics light to moderate)" },
+  { minutes: 20, met: 5.3, what: "technique, shadow boxing, slow pads (15425, martial arts practice, slower pace)" },
+  { minutes: 15, met: 7.3, what: "bag and pad rounds (15457, kickboxing)" },
+  { minutes: 10, met: 1.3, what: "breaks, drinking, explanations (07040, standing quietly)" },
+  { minutes: 5, met: 2.3, what: "stretching (02101, mild)" },
+];
+export const BOXING_CLASS_MET =
+  BOXING_CLASS.reduce((sum, p) => sum + p.minutes * p.met, 0) / BOXING_CLASS.reduce((sum, p) => sum + p.minutes, 0);
 const WALK_ASSUMED_KMH = 4.5;
 
 export function bmrMifflin(input: { weightKg: number; heightCm: number; age: number; sex: Sex }): number {
@@ -47,7 +62,11 @@ const PROFILE: Record<Kind, { met: number; minutes: number; label: string }> = {
   running: { met: 8.3, minutes: 30, label: "Laufen" }, // ACSM with km, else assumed ~8 km/h
   spinning: { met: 9.0, minutes: 45, label: "Spinning, 9,0 MET" }, // Compendium 01270
   swimming: { met: 5.8, minutes: 45, label: "Schwimmen, 5,8 MET" }, // Compendium 18240
-  boxing: { met: 7.3, minutes: 60, label: "Boxen/Kickboxen, 7,3 MET" }, // Compendium 15457
+  boxing: {
+    met: BOXING_CLASS_MET,
+    minutes: 60,
+    label: `Boxtraining mit Pausen, Ø ${(Math.round(BOXING_CLASS_MET * 10) / 10).toLocaleString("de-DE")} MET`,
+  },
   hiit: { met: 7.0, minutes: 45, label: "HIIT, 7,0 MET" }, // Compendium 02210
   cardio: { met: 7.0, minutes: 45, label: "Ausdauer, 7,0 MET" },
   recovery: { met: 1.0, minutes: 0, label: "Recovery" },
