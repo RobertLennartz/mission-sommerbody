@@ -173,3 +173,23 @@ describe("easy movement (locker)", () => {
     expect(withWalk.steps + withWalk.training).toBeCloseTo(without.steps, 5);
   });
 });
+
+describe("boxing", () => {
+  it("recognises boxing and kickboxing, also next to other words", () => {
+    expect(sessionKind({ category: "cardio", activity: "Boxen / Kickboxen", title: "Boxen / Kickboxen" })).toBe("boxing");
+    expect(sessionKind({ category: "cardio", activity: null, title: "Kickboxen" })).toBe("boxing");
+    expect(sessionKind({ category: "cardio", activity: "Laufen", title: "Laufen" })).toBe("running");
+  });
+
+  it("one hour at 90 kg: 7.3 MET (Compendium 15457)", () => {
+    const e = sessionEnergy({ ...base, category: "cardio", activity: "Boxen / Kickboxen", title: "Boxen / Kickboxen", duration_sec: 3600 }, 90);
+    expect(e.grossKcal).toBeCloseTo(657, 5);
+    expect(e.netKcal).toBeCloseTo(567, 5);
+  });
+
+  it("assumes a 60 minute class without a duration", () => {
+    const e = sessionEnergy({ ...base, category: "cardio", activity: "Boxen / Kickboxen", title: "Boxen / Kickboxen" }, 90);
+    expect(e.minutes).toBe(60);
+    expect(e.assumedDuration).toBe(true);
+  });
+});

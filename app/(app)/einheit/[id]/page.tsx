@@ -12,7 +12,7 @@ import { formatDecimal, joinNames } from "@/lib/numbers";
 import { pairPartners } from "@/lib/data/day";
 import { loadRange } from "@/lib/data/range";
 import { weightOn } from "@/lib/data/energy";
-import { sessionEnergy } from "@/lib/energy";
+import { sessionEnergy, sessionKind } from "@/lib/energy";
 import { formatInt } from "@/lib/numbers";
 import { AddExerciseForm, ExerciseBlock, RpeButtons, SaveAsTemplateForm, SessionBasics, StatusButtons, TrainingNumbers } from "./SessionForms";
 import { SessionDock } from "./SessionDock";
@@ -140,6 +140,7 @@ export default async function SessionPage({ params }: PageProps<"/einheit/[id]">
             key={`numbers:${session.duration_sec}`}
             id={session.id}
             withDistance={session.category !== "strength"}
+            showKm={sessionKind(session) !== "boxing"}
             duration={session.duration_sec}
             distance={session.distance_km}
             avgHr={session.avg_hr}

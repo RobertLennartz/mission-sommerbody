@@ -157,10 +157,14 @@ function DurationField({ id, initial, onValue }: { id: string; initial: number |
   );
 }
 
-/** Duration for every session; for running, swimming and co. also km, pace and heart rate. */
+/**
+ * Duration for every session; for running, swimming and co. also activity,
+ * km, pace and heart rate. Boxing has no km, so `showKm` hides km and pace.
+ */
 export function TrainingNumbers({
   id,
   withDistance,
+  showKm = true,
   duration,
   distance,
   avgHr,
@@ -168,6 +172,7 @@ export function TrainingNumbers({
 }: {
   id: string;
   withDistance: boolean;
+  showKm?: boolean;
   duration: number | null;
   distance: number | null;
   avgHr: number | null;
@@ -180,26 +185,32 @@ export function TrainingNumbers({
   if (!withDistance) return <DurationField id={id} initial={duration} onValue={setSec} />;
   return (
     <>
-      <AutosaveText label="Aktivität" initial={activity ?? ""} max={TEXT_MAX.activity} placeholder="Laufen, Schwimmen, Rad ..." save={(v) => saveSessionField(id, "activity", v)} />
-      <div className="grid grid-cols-2 gap-3">
+      <AutosaveText label="Aktivität" initial={activity ?? ""} max={TEXT_MAX.activity} placeholder="Laufen, Schwimmen, Boxen ..." save={(v) => saveSessionField(id, "activity", v)} />
+      {showKm ? (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <DurationField id={id} initial={duration} onValue={setSec} />
+            <AutosaveNumber
+              label="Distanz"
+              field={FIELDS.distance}
+              initial={toInputValue(distance)}
+              placeholder="z. B. 5,2"
+              draftKey={`ms:session:${id}:distance`}
+              onValue={setKm}
+              save={(v) => saveSessionField(id, "distance_km", v)}
+            />
+          </div>
+          <div className="flex items-baseline justify-between gap-3 px-3 py-2.5" style={{ background: "var(--color-paper)" }}>
+            <span className="t-label">Schnitt</span>
+            <span className="t-num text-[20px] font-medium">
+              {pace === null ? <span className="text-[14px] text-mute">Dauer und Distanz eintragen</span> : formatPace(pace)}
+            </span>
+            {speed !== null ? <span className="t-num text-[13px] text-mute">{formatDecimal(speed, 1, true)} km/h</span> : null}
+          </div>
+        </>
+      ) : (
         <DurationField id={id} initial={duration} onValue={setSec} />
-        <AutosaveNumber
-          label="Distanz"
-          field={FIELDS.distance}
-          initial={toInputValue(distance)}
-          placeholder="z. B. 5,2"
-          draftKey={`ms:session:${id}:distance`}
-          onValue={setKm}
-          save={(v) => saveSessionField(id, "distance_km", v)}
-        />
-      </div>
-      <div className="flex items-baseline justify-between gap-3 px-3 py-2.5" style={{ background: "var(--color-paper)" }}>
-        <span className="t-label">Schnitt</span>
-        <span className="t-num text-[20px] font-medium">
-          {pace === null ? <span className="text-[14px] text-mute">Dauer und Distanz eintragen</span> : formatPace(pace)}
-        </span>
-        {speed !== null ? <span className="t-num text-[13px] text-mute">{formatDecimal(speed, 1, true)} km/h</span> : null}
-      </div>
+      )}
       <AutosaveNumber
         label="Puls Ø"
         field={FIELDS.heartRate}

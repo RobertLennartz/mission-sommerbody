@@ -26,6 +26,9 @@ export const QUICK_ACTIVITIES: { label: string; category: Category; activity: st
   { label: "Schwimmen", category: "cardio", activity: "Schwimmen" },
   { label: "Spinning", category: "cardio", activity: "Spinning" },
   { label: "HIIT", category: "hiit", activity: "HIIT" },
+  // One button for both (Robert, 21.10.2026); the title can be changed afterwards.
+  // Zero-width space: the label may wrap after "(Kick-)" on narrow phones.
+  { label: "(Kick-)\u200bBoxen", category: "cardio", activity: "Boxen / Kickboxen" },
   // Easy movement around a training, no extra effort (Robert, 10.10.2026).
   { label: "Rad locker", category: "light", activity: "Lockeres Radfahren" },
   { label: "Gehen", category: "light", activity: "Gehen" },

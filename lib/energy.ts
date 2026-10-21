@@ -11,6 +11,9 @@
  *   Only the part above rest (MET - 1) enters the balance, the resting part is
  *   already in the BMR. Running with km: ACSM running equation, net about
  *   1 kcal per kg and km.
+ * - Boxing and kickboxing (21.10.2026): 7.3 MET, Compendium 15457
+ *   "Kickboxing". Between punching bag (15110, 5.8) and sparring (15120, 7.8);
+ *   ring fights (15100, 12.3) would overstate a normal class.
  * - Easy movement ("locker", 10.10.2026): bike 3.5 MET (Compendium 01210,
  *   stationary 25-30 W, very light to light). Walking like the steps, net
  *   0.5 kcal per kg and km; without km 4.5 km/h is assumed (Compendium 17352
@@ -36,7 +39,7 @@ export function bmrMifflin(input: { weightKg: number; heightCm: number; age: num
   return base + (input.sex === "male" ? 5 : -161);
 }
 
-type Kind = "strength" | "running" | "spinning" | "swimming" | "hiit" | "cardio" | "recovery" | "walking" | "light";
+type Kind = "strength" | "running" | "spinning" | "swimming" | "boxing" | "hiit" | "cardio" | "recovery" | "walking" | "light";
 
 /** MET (gross) and default minutes when no duration was entered. */
 const PROFILE: Record<Kind, { met: number; minutes: number; label: string }> = {
@@ -44,6 +47,7 @@ const PROFILE: Record<Kind, { met: number; minutes: number; label: string }> = {
   running: { met: 8.3, minutes: 30, label: "Laufen" }, // ACSM with km, else assumed ~8 km/h
   spinning: { met: 9.0, minutes: 45, label: "Spinning, 9,0 MET" }, // Compendium 01270
   swimming: { met: 5.8, minutes: 45, label: "Schwimmen, 5,8 MET" }, // Compendium 18240
+  boxing: { met: 7.3, minutes: 60, label: "Boxen/Kickboxen, 7,3 MET" }, // Compendium 15457
   hiit: { met: 7.0, minutes: 45, label: "HIIT, 7,0 MET" }, // Compendium 02210
   cardio: { met: 7.0, minutes: 45, label: "Ausdauer, 7,0 MET" },
   recovery: { met: 1.0, minutes: 0, label: "Recovery" },
@@ -58,6 +62,7 @@ export function sessionKind(s: { category: Category; activity: string | null; ti
   const text = `${s.activity ?? ""} ${s.title}`.toLowerCase();
   // "Laufband" in an easy session means walking on it, not running.
   if (s.category === "light") return /geh|walk|spazier|lauf/.test(text) ? "walking" : "light";
+  if (/box/.test(text)) return "boxing";
   if (/lauf|jogg|run/.test(text)) return "running";
   if (/spinning|rad|bike|cycl/.test(text)) return "spinning";
   if (/schwimm|swim/.test(text)) return "swimming";
